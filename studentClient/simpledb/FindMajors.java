@@ -3,7 +3,7 @@ import simpledb.remote.SimpleDriver;
 
 public class FindMajors {
     public static void main(String[] args) {
-		String major = args[0];
+		String major = "math";//args[0];
 		System.out.println("Here are the " + major + " majors");
 		System.out.println("Name\tGradYear");
 

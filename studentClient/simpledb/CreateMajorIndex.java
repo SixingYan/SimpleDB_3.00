@@ -11,9 +11,9 @@ public class CreateMajorIndex {
 			Driver d = new SimpleDriver();
 			conn = d.connect("jdbc:simpledb://localhost", null);
 			Statement stmt = conn.createStatement();
-			String s = "create index MAJORID_INDEX on STUDENT(MajorId)";
+			String s = "create index majoridindex on STUDENT(MajorId)";
 			stmt.executeUpdate(s);
-			System.out.println("Index MAJORID_INDEX created.");
+			System.out.println("Index majoridindex created.");
 		}
 		catch(SQLException e) {
 			e.printStackTrace();
