@@ -7,7 +7,7 @@ import simpledb.tx.Transaction;
 import simpledb.record.*;
 import simpledb.index.Index;
 import simpledb.index.hash.HashIndex; 
-import simpledb.index.btree.BTreeIndex; //in case we change to btree indexing
+//import simpledb.index.btree.BTreeIndex; //in case we change to btree indexing
 
 
 /**

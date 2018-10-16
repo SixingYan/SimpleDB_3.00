@@ -5,7 +5,7 @@ import simpledb.query.*;
 import simpledb.index.Index;
 
 /**
- * The scan class corresponding to the select relational
+ * The scan class corresponding to the <i>select<i> relational
  * algebra operator.
  * @author Edward Sciore
  */
