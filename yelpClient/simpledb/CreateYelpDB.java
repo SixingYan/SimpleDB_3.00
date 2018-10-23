@@ -2,6 +2,7 @@ import java.sql.*;
 import simpledb.remote.SimpleDriver;
 
 public class CreateYelpDB {
+	// 
     public static void main(String[] args) {
 		Connection conn = null;
 		try {
