@@ -9,24 +9,30 @@ The original code of SimpleDB is called SimpleDB v2.0.1, and the advanced versio
 
 The details of new features would not released now.
 
+---
 
-Use Case
+## New features
+- Index
 
-create
+---
+
+## Use Case
+
+### create
 - 
 
-insert
+### insert
 
 
-update
+### update
 
 
-delete
+### delete
 
 
-Test Case
+## Test Case
 - 
 
-
+---
 
 The dataset is available on . 
