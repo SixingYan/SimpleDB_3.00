@@ -20,10 +20,10 @@ public class LinearHashIndex implements Index {
   	private LinearHashIndexMgr lhiMgr;
 
 	private int split = 0; //分裂点    
-	private int hashSize = INIT_HASH_TBL_SIZE; //哈希表的初始大小  
-	private int hashVal = INIT_HASH_RD_SIZE; //哈希大小的记录值   
-	private int round = 0;  //分裂轮数  	  
-	private List<Map<Integer, String>> hash; //模拟哈希表  
+	private int hashSize = INIT_LHASH_TBL_SIZE; //哈希表的初始大小  
+	private int count; //哈希大小的记录值   
+	private int round;  //分裂轮数 start by 1  	  
+	private List<Map<Integer, Integer>> hashList; //模拟哈希表  
 	private String idxname;
 	private Schema sch;
 	private Transaction tx;
@@ -36,15 +36,14 @@ public class LinearHashIndex implements Index {
 	 * @param sch the schema of the index records
 	 * @param tx the calling transaction
 	 */
-	public LinearHashIndex() {
-		
-	}
+
 	public LinearHashIndex(String tblname, String idxname, Schema sch, Transaction tx) {
 		this.tblname = tblname;
 		this.idxname = idxname;
 		this.sch = sch;
 		this.tx = tx;
 		this.lhiMgr = new LinearHashIndexMgr(tblname, idxname, tx);
+		initHashIndex();
 	}
 
 	/**
@@ -53,23 +52,28 @@ public class LinearHashIndex implements Index {
 	 *  
 	 */
 	public void initHashIndex() {
-		lhiMgr = new LinearHashIndexMgr(isNew(), this.idxname, this.tx);
-		
-		this.split = split;
-		this.hashVal = hashVal;
-		this.round = round;
-		this.hash = new ArrayList<Map<Integer, String>>();
-		for (int i = 0; i < this.hashSize; i++)
-			hash.add(new HashMap<Integer, String>()); //向哈希表中初始化桶
+		//lhiMgr = new LinearHashIndexMgr(isNew(), this.idxname, this.tx);
+		this.split = this.lhiMgr.getSplit();
+		this.round = this.lhiMgr.getRound();
+		this.count = this.lhiMgr.getCount();
+		if (this.count == 0) 
+			initHashBlock();
+		else {
+			HashMap<Integer, Integer> block; // 桶
+			for (int i = 0; i < this.count; i ++)
+				this.hashList.add(this.lhiMgr.getBlock(i));
+		}
 		this.idxname;
 
 	}
 
-	private void initHash() {
-		this.hash = new ArrayList<Map<Integer, String>>();
-		for (int i = 0; i < this.hashSize; i++)
-			hash.add(new HashMap<Integer, String>()); //向哈希表中初始化桶
+	public initHashBlock() {
+		this.hashList = new ArrayList<Map<Integer, String>>();
+		for (int i = 0; i < INIT_LHASH_TBL_SIZE; i++)
+			hashList.add(new HashMap<Integer, String>()); //向哈希表中初始化桶
+		this.lhiMgr.setCount(INIT_LHASH_TBL_SIZE);
 	}
+
 	/**
 	 * Hash function to obtain index value
 	 * 
@@ -142,6 +146,7 @@ public class LinearHashIndex implements Index {
 	 * @see simpledb.index.Index#next()
 	 */
 	public boolean next() {
+		// non-update
 		while (ts.next())
 			if (ts.getVal("dataval").equals(searchkey))
 				return true;
@@ -176,7 +181,7 @@ public class LinearHashIndex implements Index {
 	}
 
 	public void insert(Constant val, RID rid) {
-
+		// non-update
 
 
 
@@ -219,6 +224,7 @@ public class LinearHashIndex implements Index {
 	 * @see simpledb.index.Index#delete(simpledb.query.Constant, simpledb.record.RID)
 	 */
 	public void delete(Constant val, RID rid) {
+		// non-update
 		beforeFirst(val);
 		while(next())
 			if (getDataRid().equals(rid)) {
@@ -247,6 +253,7 @@ public class LinearHashIndex implements Index {
 	 * @return the cost of traversing the index
 	 */
 	public static int searchCost(int numblocks, int rpb){
+		// non-update
 		return numblocks / HashIndex.NUM_BUCKETS;
 	}
 }
