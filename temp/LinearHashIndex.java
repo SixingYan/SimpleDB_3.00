@@ -36,23 +36,16 @@ public class LinearHashIndex implements Index {
 	 * @param sch the schema of the index records
 	 * @param tx the calling transaction
 	 */
+	public LinearHashIndex() {
+		
+	}
 	public LinearHashIndex(String tblname, String idxname, Schema sch, Transaction tx) {
 		this.tblname = tblname;
 		this.idxname = idxname;
 		this.sch = sch;
 		this.tx = tx;
-
-		initHashIndex(tblname);
+		this.lhiMgr = new LinearHashIndexMgr(tblname, idxname, tx);
 	}
-
-	public Boolean isNew () {
-		Map<String,IndexInfo> idxMap = SimpleDB.mdMgr().getIndexInfo(this.tblname, this.tx);
-		if (idxMap.containsKey(this.idxname))
-			return true;
-		else
-			return false;
-	}
-
 
 	/**
 	 * If there is some pre-configure, update the related members.

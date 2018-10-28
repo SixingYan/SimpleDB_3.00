@@ -22,7 +22,7 @@ import java.util.*;
  * @author Edward Sciore
  */
 public class FileMgr {
-   private File dbDirectory;
+   private File dbDirectory; 
    private boolean isNew;
    private Map<String,FileChannel> openFiles = new HashMap<String,FileChannel>();
 

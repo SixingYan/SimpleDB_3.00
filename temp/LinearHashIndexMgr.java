@@ -1,12 +1,14 @@
 public class LinearHashIndexMgr {
-	
+	private String indexname;
+	private Transaction tx;
 	private TableInfo hcatInfo, hfcatInfo;
 
 	// param isNew detemine whether there is a index 
-	public LinearHashMgr(String idxname, Transaction tx) {
+	public LinearHashMgr(Boolean isnew, String tblname, String idxname, Transaction tx) {
+		this.tblname = tblname;
 		this.idxname = idxname;
 		this.tx = tx;
-		if (LinearHashCatIsNew()) {
+		if (isnew) {
 			if (LinearHashFileCatIsNew()) { // create linearHashCat first
 				Schema lhcatSchema = new Schema();
 	  			lhcatSchema.addStringField("indexname", MAX_NAME);
@@ -15,10 +17,11 @@ public class LinearHashIndexMgr {
 	  			this.lhcatInfo = new TableInfo("lhashcat", lhcatSchema);
 			}
 			
-			createLinearHash(idxname, )
+			createLinearHash();
    		}
    		else {
-   			hcatInfo = 
+   			// get the record
+
    		}
    	}
 
@@ -65,4 +68,5 @@ public class LinearHashIndexMgr {
 	public createLinearHashFile () {
 
 	}
+
 }
