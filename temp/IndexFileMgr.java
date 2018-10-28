@@ -1,24 +1,44 @@
+// 不能用二进制做
+
 public class IndexFileMgr {
 	private String idxFilename;
 	private Map<String, Map> idxFile;
-
+	// 这里全局地址怎么拿到？
+	//System.getProperty("user.home");
+	// add a method to get dbDirectory to 
+	SimpleDB.fileMgr().dbDir();
 	public IndexFileMgr (String filename) {
 		this.idxFilename = filename; //?
 	}
 
+	public Boolean hasIndexFile () {
+		// if not, initialization
+		this.indexFile = new Map<String, Map>();
+	} 
+
 	public Map<String, Map<Integer,List>> get() {
 		read();
-		return 
+		return this.idxFile; 
 	}
 
 	public void put(Map<String, Map> config, Map index) {
-		Map indexFile = new Map<String, Map>();
-		indexFile.put("config", config);
-		indexFile.put("index", index);
-		save();
+		this.indexFile.put("config", config);
+		this.indexFile.put("index", index);
+		write();
 	}
-	private void save? () {
-		// 可能会换一个名称
+	private void write (){
 		this.idxFile;
+	}
+
+	private Map read () {
+		this.idxFile
+	}
+
+
+	private void createIndexFile () {
+		lhashcat
+
+		lhashfcat +
+
 	}
 }

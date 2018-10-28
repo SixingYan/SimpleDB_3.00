@@ -17,10 +17,11 @@ import simpledb.index.Index;
 
 public class LinearHashIndex implements Index {
 	public static int NUM_BUCKETS = 100;  //桶的容量  
-  
-	private int splitPoint = 0; //分裂点    
-	private int hashSize = 4; //哈希表的初始大小  
-	private int hashVal = 4; //哈希大小的记录值  
+  	private LinearHashIndexMgr lhiMgr;
+
+	private int split = 0; //分裂点    
+	private int hashSize = INIT_HASH_TBL_SIZE; //哈希表的初始大小  
+	private int hashVal = INIT_HASH_RD_SIZE; //哈希大小的记录值   
 	private int round = 0;  //分裂轮数  	  
 	private List<Map<Integer, String>> hash; //模拟哈希表  
 	private String idxname;
@@ -35,27 +36,38 @@ public class LinearHashIndex implements Index {
 	 * @param sch the schema of the index records
 	 * @param tx the calling transaction
 	 */
-	public LinearHashIndex(String idxname, Schema sch, Transaction tx) {
+	public LinearHashIndex(String tblname, String idxname, Schema sch, Transaction tx) {
+		this.tblname = tblname;
 		this.idxname = idxname;
 		this.sch = sch;
 		this.tx = tx;
-		initHash();
+
+		initHashIndex(tblname);
 	}
+
+	public Boolean isNew () {
+		Map<String,IndexInfo> idxMap = SimpleDB.mdMgr().getIndexInfo(this.tblname, this.tx);
+		if (idxMap.containsKey(this.idxname))
+			return true;
+		else
+			return false;
+	}
+
+
 	/**
 	 * If there is some pre-configure, update the related members.
 	 * Check the 'idxcat' file to see whether there is an index with idxname.
 	 *  
 	 */
-	public void initHash(
-		int splitPoint, int hashVal, int round, ) {
-		this.splitPoint = splitPoint;
+	public void initHashIndex() {
+		lhiMgr = new LinearHashIndexMgr(isNew(), this.idxname, this.tx);
+		
+		this.split = split;
 		this.hashVal = hashVal;
 		this.round = round;
 		this.hash = new ArrayList<Map<Integer, String>>();
 		for (int i = 0; i < this.hashSize; i++)
 			hash.add(new HashMap<Integer, String>()); //向哈希表中初始化桶
-
-
 		this.idxname;
 
 	}
@@ -74,7 +86,7 @@ public class LinearHashIndex implements Index {
 	}
 
 	private void splitHash() {
-		Map<Integer, String> oldMap = this.hash.get(this.splitPoint);   //旧桶  
+		Map<Integer, String> oldMap = this.hash.get(this.split);   //旧桶  
 		Map<Integer, String> newMap = new HashMap<Integer, String>(); //分裂产生的新桶  
 		
 		Integer[] keyList = oldMap.keySet().toArray(new Integer[0]);  
@@ -89,11 +101,11 @@ public class LinearHashIndex implements Index {
 		this.hash.add(newMap);  //将新桶放入哈希表  
 
 		this.hashSize ++;  //哈希表长度增加  
-		this.splitPoint ++;  //分裂点移动  
-		if(this.splitPoint >= this.hashVal){  //分裂点移动了一轮就更换新的哈希函数  
+		this.split ++;  //分裂点移动  
+		if(this.split >= this.hashVal){  //分裂点移动了一轮就更换新的哈希函数  
 			this.round ++;  
 			this.hashVal = this.hashVal * 2;  
-			this.splitPoint = 0;  
+			this.split = 0;  
 		}  
 	}
 
@@ -104,7 +116,7 @@ public class LinearHashIndex implements Index {
 
 	private int getBucketIndex(int key){
 		int idx = hashIndex(key, this.round);
-		if (idx < this.splitPoint) 
+		if (idx < this.split) 
 			idx = hashIndex(key, this.round + 1);
 		return hash.get().get(key)
 	}
@@ -176,7 +188,7 @@ public class LinearHashIndex implements Index {
 
 
 		int idx = hashIndex(key, this.round);     
-        if(idx < this.splitPoint){  
+        if(idx < this.split){  
             index = hashIndex(key, this.round + 1);  
         }
         Map<Integer, String> map = this.hash.get(idx);  
@@ -254,10 +266,10 @@ hashcat.
 		int hashNumber = (this.tblname+this.idxname+this.fldname).hashCode();
 		hashFilename = "hashcat" + hashNumber;
 		IndexFileMgr idxfMgr = New IndexFileMgr(hashFilename);
-		if (idxfMgr.hasIndex(hashFilename)) {
+		if (idxfMgr.hasIndexFile()) {
 			Map idxFile = idxfMgr.get();
 			idxFile.get("");
-			this.splitPoint = idxFile.get("config").get("splitPoint")
+			this.split = idxFile.get("config").get("split")
 			this.hash = idxFile.get("index")
 
 		}
@@ -267,7 +279,7 @@ hashcat.
 			for (int i = 0; i < this.hashSize; i++)
 				hash.add(new HashMap<Integer, String>()); //向哈希表中初始化桶
 			Map config = new Map<String, Integer>();
-			config.put("splitPoint",this.);
+			config.put("split",this.);
 			config.put("", this.);
 
 			idxfMgr.put(config, this.hash);
