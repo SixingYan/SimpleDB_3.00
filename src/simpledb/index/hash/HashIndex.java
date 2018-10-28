@@ -41,11 +41,11 @@ public class HashIndex implements Index {
 	 * @see simpledb.index.Index#beforeFirst(simpledb.query.Constant)
 	 */
 	public void beforeFirst(Constant searchkey) {
-		close();
+		close(); // end up the scan on the last file
 		this.searchkey = searchkey;
 		int bucket = searchkey.hashCode() % NUM_BUCKETS;
 		String tblname = idxname + bucket;
-		TableInfo ti = new TableInfo(tblname, sch);
+		TableInfo ti = new TableInfo(tblname, sch); // this will open a bucket
 		ts = new TableScan(ti, tx);
 	}
 
