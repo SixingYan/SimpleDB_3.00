@@ -8,7 +8,7 @@ public class InsertYelpBusiness {
 			Driver d = new SimpleDriver();
 			conn = d.connect("jdbc:simpledb://localhost", null);
 			Statement stmt = conn.createStatement();
-
+			
 			s = "insert into STUDENT(SId, SName, MajorId, GradYear) values ";
 			String[] studvals = {"(1, 'joe', 10, 2004)",
 								 "(2, 'amy', 20, 2004)",
