@@ -48,7 +48,7 @@ public class LinearHashIndexMgr {
    	}
 
    	public void createBucket(int bktno) {
-   		Schema sch = new Schema();
+   		Schema sch = new Schema();3
    		sch.addIntField("blocknumber");
    		SimpleDB.mdMgr().createTable(getBucketName(bktno), sch, this.tx);
    	}
