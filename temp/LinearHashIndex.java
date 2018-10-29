@@ -70,8 +70,12 @@ public class LinearHashIndex implements Index {
 		this.hashList = new ArrayList<Integer>();
 		//
 		this.count = INIT_LHASH_TBL_SIZE;
-		for (int i = 0; i < this.count; i++)
-			hashList.add(new ArrayList<Integer>()); //向哈希表中初始化桶
+		ArrayList bucket;
+		for (int i = 0; i < this.count; i++){
+			bucket = new ArrayList<Integer>();
+			this.hashList.add(bucket); //向哈希表中初始化桶
+			this.lhiMgr.insertBucket(i,bucket);
+		}
 		this.lhiMgr.setCount(INIT_LHASH_TBL_SIZE);
 	}
 
@@ -114,9 +118,11 @@ public class LinearHashIndex implements Index {
 			this.size = this.size * 2;  
 			this.split = 0;
 		}
+		updateConfig();
+	}
+	private void updateConfig() {
 		this.lhiMgr.updateConfig(this.round, this.size, this.split);
 	}
-
 	/**
 	 * 
 	 * 

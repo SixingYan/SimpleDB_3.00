@@ -3,9 +3,12 @@ public class LinearHashIndexMgr {
 	private String idxname;
 	private Transaction tx;
 	private int count;
-	public int split; // use getset to read/write
-	public int round; // use getset to read/write
+	private int split; 
+	private int round; 
+	private String lhfname;
 
+
+	// 是否需要move to rid 然后才开始 insert 嘛
 	//private TableInfo hcatInfo, hfcatInfo;
 
 	// param isNew detemine whether there is a index 
@@ -13,26 +16,8 @@ public class LinearHashIndexMgr {
 		this.tblname = tblname;
 		this.idxname = idxname;
 		this.tx = tx;
+		this.lhfname = "lhidxcat" + (tblname+idxname).hashCode();
 		init();
-
-
-
-		if (isnew) {
-			if (LinearHashFileCatIsNew()) { // create linearHashCat first
-				Schema lhcatSchema = new Schema();
-	  			lhcatSchema.addStringField("indexname", MAX_NAME);
-	  			lhcatSchema.addIntField("split");
-	  			lhcatSchema.addIntField("round");
-	  			lhcatSchema.addIntField("count");
-	  			this.lhcatInfo = new TableInfo("lhashcat", lhcatSchema);
-			}
-			
-			createLinearHash();
-   		}
-   		else {
-   			// get the record
-
-   		}
    	}
 
    	private void init() {
@@ -40,78 +25,74 @@ public class LinearHashIndexMgr {
    		RecordFile rf = new RecordFile(this.hti, tx);
       	while (rf.next())
          	if (rf.getString("tablename").equals(this.tblname) & rf.getString("indexname").equals(this.idxname)) {
-         		this.split = rf.getInt("indexname");
+         		this.split = rf.getInt("split");
          		this.round = rf.getInt("round");
          		this.count = rf.getInt("count");
          		break;
       		}
       	rf.close();
-      	
+   	}
 
-      	if (this.count == 0) {
-      		String fcatno = String.valueOf((this.tblname+this.idxname).hashCode());
-      		Schema sch = new Schema();
-      		sch.addIntField("blocknumber");
-      		for (int i = 0; i < DEFAULT_LHASH_TBL_SIZE; i ++) {
-      			tblmgr.createTable("lhidxcat" + fcatno + "_" + i, sch, tx);
-      		}
-      		this.count = DEFAULT_LHASH_TBL_SIZE;
-      	}
+   	public void insertBucket(int bktno, ArrayList<Integer> bucket) {
+   		// 1. create new bucket
+   		createBucket(bktno);
+   		// 2. insert data into bucket
+   		TableInfo lhfti = SimpleDB.mdMgr().getTableInfo(getBucketName(bktno), tx);
+   		RecordFile rf;
+   		for (int i = 0; i < bucket.size(); i ++) {
+   			rf = new RecordFile(lhfti, tx);
+      		rf.insert();
+      		rf.setInt("blocknumber", bucket.get(i));
+      		rf.close();
+   		}
+   	}
+
+   	public void createBucket(int bktno) {
+   		Schema sch = new Schema();
+   		sch.addIntField("blocknumber");
+   		SimpleDB.mdMgr().createTable(getBucketName(bktno), sch, this.tx);
+   	}
+
+   	public void updateBucket(int bktno, ArrayList<Integer> bucket) {
+   		deleteBucket(bktno);
+   		insertBucket(bktno, bktname);
+   	}
+
+   	public void deleteBucket(int bktno) {
+   		SimpleDB.mdMgr().deleteTable(getBucketName(bktno), tx);
+   	}
+
+   	private String getBucketName(int bktno) {
+   		return this.lhfname + "_" + bktno;
+   	}
+
+   	public void updateConfig (int round, int size, int split) {
 
    	}
 
-   private void initLinearHashFile () {
-   String fcatno = String.valueOf((this.tblname+this.idxname).hashCode());
-      		Schema sch = new Schema();
-      		sch.addIntField("blocknumber");
-      		for (int i = 0; i < DEFAULT_LHASH_TBL_SIZE; i ++) {
-      			tblmgr.createTable("lhidxcat" + fcatno + "_" + i, sch, tx);
-      		}
-   }
-
-
-   	// this isnew work for linearHashCat file
-   	
-   	public Boolean LinearHashCatIsNew () {
-		Map<String,IndexInfo> idxMap = SimpleDB.mdMgr().getIndexInfo(this.tblname, this.tx);
-		if (idxMap.containsKey(this.idxname))
-			return true;
-		else
-			return false;
+	public int getSplit () {
+		return this.split;
 	}
-	public Boolean LinearHashFileCatIsNew () {
-
-   	}
-
-   	public void createLinearHash() {	
-   		RecordFile rf = new RecordFile(this.lhcatInfo, tx);
-      	rf.insert();
-      	rf.setString("indexname", idxname);
-      	rf.setInt("split", DEFAULT_SPLIT);
-      	rf.setInt("round", DEFAULT_ROUND);
-      	rf.close();
-
-      	initLinearHashFile(indexname.hashCode());
+	public int getCount () {
+		return this.count;
+	}
+	public int getRound () {
+		return this.round;
 	}
 
-	public void initLinearHashFile (int lhfcatno) {
-		Schema lhfcatSchema = new Schema();
-   		for (int i = 0; i < INIT_HASH_TBL_SIZE; i++) {
-   			lhfcatSchema.addIntField("blocknumber");
-	  		this.lhfcatInfo = new TableInfo("lhashfcat" + lhfcatno + "_" + i, lhfcatSchema);
-	  	}
-	}
-
-	public getLinearHashIndex() {
+	public void setCount () {
 
 	}
 
-	public put () {
 
-	}
 
-	public createLinearHashFile () {
 
-	}
+
+
+
+
+
+
+
 
 }
