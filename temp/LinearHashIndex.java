@@ -18,12 +18,12 @@ import simpledb.index.Index;
 public class LinearHashIndex implements Index {
 	public static int NUM_BUCKETS = 100;  //桶的容量  
   	private LinearHashIndexMgr lhiMgr;
-
-	private int split = 0; //分裂点    
-	private int hashSize = INIT_LHASH_TBL_SIZE; //哈希表的初始大小  
-	private int count; //哈希大小的记录值   
+  	private int bktIndex;
+	private int split; //分裂点    
+	private int count; //哈希表的初始大小  
+	private int size; //哈希大小的记录值 4   
 	private int round;  //分裂轮数 start by 1  	  
-	private List<Map<Integer, Integer>> hashList; //模拟哈希表  
+	private List<List<Integer>> hashList; //模拟哈希表  
 	private String idxname;
 	private Schema sch;
 	private Transaction tx;
@@ -38,12 +38,11 @@ public class LinearHashIndex implements Index {
 	 */
 
 	public LinearHashIndex(String tblname, String idxname, Schema sch, Transaction tx) {
-		this.tblname = tblname;
 		this.idxname = idxname;
 		this.sch = sch;
 		this.tx = tx;
 		this.lhiMgr = new LinearHashIndexMgr(tblname, idxname, tx);
-		initHashIndex();
+		initHash();
 	}
 
 	/**
@@ -51,26 +50,28 @@ public class LinearHashIndex implements Index {
 	 * Check the 'idxcat' file to see whether there is an index with idxname.
 	 *  
 	 */
-	public void initHashIndex() {
-		//lhiMgr = new LinearHashIndexMgr(isNew(), this.idxname, this.tx);
+	public void initHash() {
 		this.split = this.lhiMgr.getSplit();
 		this.round = this.lhiMgr.getRound();
 		this.count = this.lhiMgr.getCount();
 		if (this.count == 0) 
-			initHashBlock();
-		else {
-			HashMap<Integer, Integer> block; // 桶
+			initHashIndexBucket();
+		else 
 			for (int i = 0; i < this.count; i ++)
-				this.hashList.add(this.lhiMgr.getBlock(i));
-		}
-		this.idxname;
-
+				this.hashList.add(this.lhiMgr.getBucket(i));
 	}
 
-	public initHashBlock() {
-		this.hashList = new ArrayList<Map<Integer, String>>();
-		for (int i = 0; i < INIT_LHASH_TBL_SIZE; i++)
-			hashList.add(new HashMap<Integer, String>()); //向哈希表中初始化桶
+	/**
+	 * Hash function to obtain index value
+	 * 
+	 */
+	public initHashIndexBucket() {
+		//
+		this.hashList = new ArrayList<Integer>();
+		//
+		this.count = INIT_LHASH_TBL_SIZE;
+		for (int i = 0; i < this.count; i++)
+			hashList.add(new ArrayList<Integer>()); //向哈希表中初始化桶
 		this.lhiMgr.setCount(INIT_LHASH_TBL_SIZE);
 	}
 
@@ -82,40 +83,49 @@ public class LinearHashIndex implements Index {
 		return key % (this.hashVal * round)
 	}
 
-	private void splitHash() {
-		Map<Integer, String> oldMap = this.hash.get(this.split);   //旧桶  
-		Map<Integer, String> newMap = new HashMap<Integer, String>(); //分裂产生的新桶  
+	/**
+	 * Hash function to obtain index value
+	 * 
+	 */
+	private void splitBucket() {
+		ArrayList<Integer> oldBucket = this.hash.get(this.split);   //旧桶  
+		ArrayList<Integer> newBucket = new HashMap<Integer, String>(); //分裂产生的新桶  
 		
-		Integer[] keyList = oldMap.keySet().toArray(new Integer[0]);  
-		for (int i = 0; i < keyList.length; i++) {  //准备移动一半的数据到新桶  
-			int key = keyList[i].intValue();  
-			int index = hashIndex(key, this.round + 1);  
-			if (index >= hashSize) { 
-				newMap.put(key, oldMap.get(key));  
-				oldMap.remove(key);
-			}  
-		}  
-		this.hash.add(newMap);  //将新桶放入哈希表  
+		int blkno;
+		for (int i = 0; i < oldBucket.size(); i++) {  //准备移动一半的数据到新桶  
+			oldBucket.get(i);
+			blkno = oldBucket.get(i);
+			this.bktIndex = hashIndex(blkno, this.round + 1);
+			if (this.bktIndex >= this.count) { 
+				newBucket.add(blkno);  
+				oldBucket.removeAt(i);
+			}
+			this.lhiMgr.updateBlock(i, oldBucket);
+		}
+		
+		this.hash.add(newBucket);  //将新桶放入哈希表  
+		this.count ++;  //哈希表长度增加
+		this.lhiMgr.insertBucket(this.count, newBucket); // 将新桶插入本地
 
-		this.hashSize ++;  //哈希表长度增加  
 		this.split ++;  //分裂点移动  
-		if(this.split >= this.hashVal){  //分裂点移动了一轮就更换新的哈希函数  
+		
+		if(this.split >= this.size){  //分裂点移动了一轮就更换新的哈希函数  
 			this.round ++;  
-			this.hashVal = this.hashVal * 2;  
-			this.split = 0;  
-		}  
+			this.size = this.size * 2;  
+			this.split = 0;
+		}
+		this.lhiMgr.updateConfig(this.round, this.size, this.split);
 	}
 
 	/**
 	 * 
 	 * 
 	 */
-
 	private int getBucketIndex(int key){
-		int idx = hashIndex(key, this.round);
-		if (idx < this.split) 
-			idx = hashIndex(key, this.round + 1);
-		return hash.get().get(key)
+		this.bktIndex = hashIndex(key, this.round);
+		if (this.bktIndex < this.split) 
+			this.bktIndex = hashIndex(key, this.round + 1);
+		return hash.get().get(key);
 	}
 
 	/**
@@ -127,13 +137,12 @@ public class LinearHashIndex implements Index {
 	 * The table scan for the previous bucket (if any) is closed.
 	 * @see simpledb.index.Index#beforeFirst(simpledb.query.Constant)
 	 */
-	// 
 	public void beforeFirst(Constant searchkey) { 
 		close(); // end up the scan on the last file
 		this.searchkey = searchkey;
 		int bucket = getBucketIndex(searchkey.hashCode()) //  这才是索引出现的地方
 		String tblname = idxname + bucket;
-		TableInfo ti = new TableInfo(tblname, sch); // this will open a bucket
+		TableInfo ti = new TableInfo(tblname, this.sch); // this will open a bucket
 		ts = new TableScan(ti, tx);
 	}
 
@@ -146,7 +155,6 @@ public class LinearHashIndex implements Index {
 	 * @see simpledb.index.Index#next()
 	 */
 	public boolean next() {
-		// non-update
 		while (ts.next())
 			if (ts.getVal("dataval").equals(searchkey))
 				return true;
@@ -170,50 +178,14 @@ public class LinearHashIndex implements Index {
 	 */
 	public void insert(Constant val, RID rid) {
 		beforeFirst(val);
-		ts.insert();
-		ts.setInt("block", rid.blockNumber());
-		ts.setInt("id", rid.id());
-		ts.setVal("dataval", val);
-	}
-
-	public void indexInsert() {
-
-	}
-
-	public void insert(Constant val, RID rid) {
-		// non-update
-
-
-
-		int idx = hashIndex(key, this.round);     
-        if(idx < this.split){  
-            index = hashIndex(key, this.round + 1);  
-        }
-        Map<Integer, String> map = this.hash.get(idx);  
-        if (map.size() < this.NUM_BUCKETS) {   //判断当前桶是否满了  
-            map.put(key, value);  
-        } 
-        else {  
-            map.put(key, value);    
-            splitHash();              //满了就进行分裂  
-        }  
-
-        beforeFirst(val);
-
-        indexInsert(rid.blockNumber());
-        splitHash()
+        this.hashList.get(this.bktIndex).add(rid.blockNumber()); 
+        if (bucket.size() > NUM_BUCKETS)  //判断当前桶是否满了   
+            splitBucket();              //满了就进行分裂  
 
 		this.ts.insert();
 		this.ts.setInt("block", rid.blockNumber());
 		this.ts.setInt("id", rid.id());
 		this.ts.setVal("dataval", val);
-
-
-		beforeFirst(val);
-		ts.insert();
-		ts.setInt("block", rid.blockNumber());
-		ts.setInt("id", rid.id());
-		ts.setVal("dataval", val);
 	}
 
 	/**
@@ -241,61 +213,4 @@ public class LinearHashIndex implements Index {
 		if (ts != null)
 			ts.close();
 	}
-
-	/**
-	 * Returns the cost of searching an index file having the
-	 * specified number of blocks.
-	 * The method assumes that all buckets are about the
-	 * same size, and so the cost is simply the size of
-	 * the bucket.
-	 * @param numblocks the number of blocks of index records
-	 * @param rpb the number of records per block (not used here)
-	 * @return the cost of traversing the index
-	 */
-	public static int searchCost(int numblocks, int rpb){
-		// non-update
-		return numblocks / HashIndex.NUM_BUCKETS;
-	}
 }
-
-
-
-hashcat.
-	private void initHash(){
-		// 读二进制文件 
-		int hashNumber = (this.tblname+this.idxname+this.fldname).hashCode();
-		hashFilename = "hashcat" + hashNumber;
-		IndexFileMgr idxfMgr = New IndexFileMgr(hashFilename);
-		if (idxfMgr.hasIndexFile()) {
-			Map idxFile = idxfMgr.get();
-			idxFile.get("");
-			this.split = idxFile.get("config").get("split")
-			this.hash = idxFile.get("index")
-
-		}
-		else { // 每次更新操作结束就写一次
-			// 初始化的时候也要做一次
-			this.hash = new ArrayList<Map<Integer, String>>();
-			for (int i = 0; i < this.hashSize; i++)
-				hash.add(new HashMap<Integer, String>()); //向哈希表中初始化桶
-			Map config = new Map<String, Integer>();
-			config.put("split",this.);
-			config.put("", this.);
-
-			idxfMgr.put(config, this.hash);
-		}
-
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
