@@ -34,7 +34,7 @@ public class BTreeIndex implements Index {
       if (tx.size(leafTi.fileName()) == 0)
          tx.append(leafTi.fileName(), new BTPageFormatter(leafTi, -1));
 
-      // deal with the directory
+      // deal with the directory 相比起leaf-schema， 它没有“dataRid”这个field
       Schema dirsch = new Schema();
       dirsch.add("block",   leafsch);
       dirsch.add("dataval", leafsch);

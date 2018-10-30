@@ -12,9 +12,6 @@ import simpledb.index.Index;
  * @author Sixing Yan
  */
 
-
-
-
 public class LinearHashIndex implements Index {
 	public static int NUM_BUCKETS = 100;  //桶的容量  
   	private LinearHashIndexMgr lhiMgr;
@@ -36,6 +33,38 @@ public class LinearHashIndex implements Index {
 	 * @param sch the schema of the index records
 	 * @param tx the calling transaction
 	 */
+	public LinearHashIndex(Schema bktsch) {
+		this.tx = tx;
+		
+		// deal with hash-bucket
+		String bkttbl = idxname + "bkt";
+		for () {
+			bktTi = new TableInfo(bkttbl+i, bktsch);
+			if (tx.size(leafTi.fileName()) == 0)
+         		tx.append(bktTi.fileName(), new LHPageFormatter(bktTi, -1));
+		}
+
+		// deal with function 
+		String functbl = "lnrhashcat";
+		= new TableInfo("lnrhashcat",);
+		if ()
+		
+
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	public LinearHashIndex(String idxname, Schema sch, Transaction tx) {
 		this.idxname = idxname;

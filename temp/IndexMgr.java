@@ -24,7 +24,7 @@ public class IndexMgr {
 	public IndexMgr(boolean isnew, TableMgr tblmgr, Transaction tx) {
 	  	if (isnew) {
 	  		initIndex(tblmgr, tx);
-	  		initLinearHashIndex(tblmgr, tx);
+	  		initIndexFileMgr(tblmgr, tx);
 	  	}
 	  this.ti = tblmgr.getTableInfo("idxcat", tx);
 	  this.lhiMgr = new LinearHashIndexMgr();
@@ -35,27 +35,10 @@ public class IndexMgr {
 		sch.addStringField("indexname", MAX_NAME);
 		sch.addStringField("tablename", MAX_NAME);
 		sch.addStringField("fieldname", MAX_NAME);
-		sch.addStringField("idxtype", MAX_NAME);
 		tblmgr.createTable("idxcat", sch, tx);
    	}
 
-   	
-   	public Index getIndexImpl () {
-
-   	}
-
-
-
-
-
-
-
-
-
-
-
-
-   	private void initLinearHashIndex (TableMgr tblmgr, Transaction tx) {
+   	private void initIndexFileMgr (TableMgr tblmgr, Transaction tx) {
    		Schema sch = new Schema();
 		sch.addStringField("indexname", MAX_NAME);
 		sch.addIntField("split");
@@ -72,15 +55,13 @@ public class IndexMgr {
 	* @param fldname the name of the indexed field
 	* @param tx the calling transaction
 	*/
-   public void createIndex(String idxname, String tblname, String fldname, String idxtype, Transaction tx) {
+   public void createIndex(String idxname, String tblname, String fldname, Transaction tx) {
 	  	RecordFile rf = new RecordFile(ti, tx);
 	  	rf.insert();
 	  	rf.setString("indexname", idxname);
 	  	rf.setString("tablename", tblname);
 	  	rf.setString("fieldname", fldname);
-	  	rf.setString("idxtype", idxtype);
 	  	rf.close();
-
 
 	  	if (idxtype.equals("linearhash") & this.lhti == Null)
 	  		createLinearHashIndex(tblname, idxname, tx);
@@ -128,17 +109,4 @@ public class IndexMgr {
 	  rf.close();
 	  return result;
    }
-
-
-   	create
-
-	createLinearHashIndex () {
-		return 
-   	}
-
-   	getLinearHashIndex () {
-   		if ( != null)
-   	}
-
-
 }
