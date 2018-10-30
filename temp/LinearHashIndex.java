@@ -37,11 +37,11 @@ public class LinearHashIndex implements Index {
 	 * @param tx the calling transaction
 	 */
 
-	public LinearHashIndex(String tblname, String idxname, Schema sch, Transaction tx) {
+	public LinearHashIndex(String idxname, Schema sch, Transaction tx) {
 		this.idxname = idxname;
 		this.sch = sch;
 		this.tx = tx;
-		this.lhiMgr = new LinearHashIndexMgr(tblname, idxname, tx);
+		this.lhiMgr = new LinearHashIndexMgr(idxname, tx);
 		initHash();
 	}
 
@@ -54,6 +54,7 @@ public class LinearHashIndex implements Index {
 		this.split = this.lhiMgr.getSplit();
 		this.round = this.lhiMgr.getRound();
 		this.count = this.lhiMgr.getCount();
+		this.size = this.lhiMgr.getSize();
 		if (this.count == 0) 
 			initHashIndexBucket();
 		else 
@@ -84,7 +85,7 @@ public class LinearHashIndex implements Index {
 	 * 
 	 */
 	private int hashIndex(int key, int round) {
-		return key % (this.hashVal * round)
+		return key % (this.size * round);
 	}
 
 	/**
@@ -121,7 +122,7 @@ public class LinearHashIndex implements Index {
 		updateConfig();
 	}
 	private void updateConfig() {
-		this.lhiMgr.updateConfig(this.round, this.size, this.split);
+		this.lhiMgr.updateConfig(this.count, this.round, this.size, this.split);
 	}
 	/**
 	 * 

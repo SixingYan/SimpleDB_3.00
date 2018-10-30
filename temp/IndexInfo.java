@@ -16,7 +16,7 @@ import simpledb,index.IndexContent;
  * estimate the costs of using the index,
  * and to obtain the schema of the index records.
  * Its methods are essentially the same as those of Plan.
- * @author Edward Sciore
+ * @author Edward Sciore | Sixing Yan
  */
 public class IndexInfo {
    private String idxname, fldname;
@@ -39,23 +39,15 @@ public class IndexInfo {
       ti = SimpleDB.mdMgr().getTableInfo(tblname, tx);
       si = SimpleDB.mdMgr().getStatInfo(tblname, ti, tx);
    }
-  /** @author Sixing Yan
-    * Obtain the specified Index by the Index Type information in index name.
-    * @return the specified Index object associated with this information
-    */
-  public Index getIndex(Schema sch) {
-    String[] parts = this.idxname.split(NAME_SEPERATOR);
-    IndexContent ic = new IndexContent(sch,tx);
-    return ic.initIndex(parts[2]);
-  }
-   /**
+
+   /**@author Sixing Yan
     * Opens the index described by this object.
     * @return the Index object associated with this information
     */
    public Index open() {
       Schema sch = schema();
-      // Create new HashIndex for hash indexing
-      return getIndex(sch);
+      IndexContent ic = new IndexContent(idxname, sch, tx);
+      return ic.initIndex();
    }
    
    /**

@@ -1,33 +1,31 @@
 public class LinearHashIndexMgr {
+	private TableInfo lhti; 
 	private String tblname;
 	private String idxname;
 	private Transaction tx;
+	private int size;
 	private int count;
 	private int split; 
-	private int round; 
+	private int round;
 	private String lhfname;
 
-
-	// 是否需要move to rid 然后才开始 insert 嘛
-	//private TableInfo hcatInfo, hfcatInfo;
-
-	// param isNew detemine whether there is a index 
-	public LinearHashMgr(String tblname, String idxname, Transaction tx) {
-		this.tblname = tblname;
+	public LinearHashMgr(String idxname, Transaction tx) {
 		this.idxname = idxname;
 		this.tx = tx;
-		this.lhfname = "lhidxcat" + (tblname+idxname).hashCode();
+		this.lhfname = "lhidxcat" + idxname.hashCode();
 		init();
    	}
 
    	private void init() {
-   		this.hti = tblmgr.getTableInfo("", tx);
-   		RecordFile rf = new RecordFile(this.hti, tx);
+   		this.lhti = tblmgr.getTableInfo("lhashcat", tx);
+   		RecordFile rf = new RecordFile(this.lhti, tx);
       	while (rf.next())
-         	if (rf.getString("tablename").equals(this.tblname) & rf.getString("indexname").equals(this.idxname)) {
+         	if (rf.getString("indexname").equals(this.idxname)) {
          		this.split = rf.getInt("split");
          		this.round = rf.getInt("round");
          		this.count = rf.getInt("count");
+         		this.size = rf.getInt("size");
+         		this.rid = rf.currentRid();
          		break;
       		}
       	rf.close();
@@ -48,7 +46,7 @@ public class LinearHashIndexMgr {
    	}
 
    	public void createBucket(int bktno) {
-   		Schema sch = new Schema();3
+   		Schema sch = new Schema();
    		sch.addIntField("blocknumber");
    		SimpleDB.mdMgr().createTable(getBucketName(bktno), sch, this.tx);
    	}
@@ -66,8 +64,15 @@ public class LinearHashIndexMgr {
    		return this.lhfname + "_" + bktno;
    	}
 
-   	public void updateConfig (int round, int size, int split) {
-
+   	public void updateConfig (int count, int round, int size, int split) {
+   		RecordFile rf = new RecordFile(this.lhti, tx);
+   		rf.moveToRid(this.rid);
+   		rf.insert();
+      	rf.setInt("count", count);
+      	rf.setInt("round", round);
+      	rf.setInt("size", size);
+      	rf.setInt("split", split);
+      	rf.close();
    	}
 
 	public int getSplit () {
@@ -79,20 +84,7 @@ public class LinearHashIndexMgr {
 	public int getRound () {
 		return this.round;
 	}
-
-	public void setCount () {
-
+	public int getSize () {
+		return this.size;
 	}
-
-
-
-
-
-
-
-
-
-
-
-
 }
