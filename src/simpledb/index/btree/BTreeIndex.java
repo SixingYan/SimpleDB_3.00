@@ -111,7 +111,7 @@ public class BTreeIndex implements Index {
       if (e == null)
          return;
       BTreeDir root = new BTreeDir(rootblk, dirTi, tx);
-      DirEntry e2 = root.insert(e);
+      DirEntry e2 = root.insert(e); // split or not
       if (e2 != null)
          root.makeNewRoot(e2);
       root.close();
