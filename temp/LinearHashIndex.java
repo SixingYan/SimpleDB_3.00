@@ -14,8 +14,8 @@ import simpledb.index.Index;
 
 public class LinearHashIndex implements Index {
 	public static int NUM_BUCKETS = 100;  //桶的容量  
-  	private LinearHashIndexMgr lhiMgr;
-  	private int bktIndex;
+	private LinearHashIndexMgr lhiMgr;
+	private int bktIndex;
 	private int split; //分裂点    
 	private int count; //哈希表的初始大小  
 	private int size; //哈希大小的记录值 4   
@@ -38,32 +38,68 @@ public class LinearHashIndex implements Index {
 		
 		// deal with hash-bucket
 		String bkttbl = idxname + "bkt";
-		for () {
-			bktTi = new TableInfo(bkttbl+i, bktsch);
-			if (tx.size(leafTi.fileName()) == 0)
-         		tx.append(bktTi.fileName(), new LHPageFormatter(bktTi, -1));
-		}
-
-		// deal with function 
-		String functbl = "lnrhashcat";
-		= new TableInfo("lnrhashcat",);
-		if ()
+		//for (int i = 0; i < BKT_COUNT; i ++) {
+		bktTi = new TableInfo(bkttbl, bktsch);
+		if (tx.size(bktTi.fileName()) == 0)
+			tx.append(bktTi.fileName(), new LHashPageFormatter(bktTi, )); // LHPage没写
 		
+		// deal with function 
+		Schema funcsch = new Schema();
+		funcsch.addIntField("round");
+		funcsch.addIntField("count");
+		funcsch.addIntField("size");
+		funcsch.addIntField("split");
+		String functbl = idxname + "func";
+		funcTi = new TableInfo(functbl, funcsch);
+		funcblk = new Block(funcTi.fileName(), 0);
+		if (tx.size(bktTi.fileName()) == 0)
+			tx.append(bktTi.fileName(), new LHashFuncFormatter(funcTi, )); // LHPage没写
+		
+		// 由 LHashFuncPage来管理删改工作，以及具体的函数实现
+		LHashPage func = new LHashPage(rootblk, dirTi, tx);
 
 	}
 
 
+	public void beforeFirst() {
+		close();
+		LHashFunction hFunc = new LHashFunction(funcblk, funcTi, tx);
+		int blknum = hFunc.search(searchkey);
+		hFunc.close();
+		Block bucketblk = new Block(bktTi.fileName(), blknum);
+		this.bucket = new LHashBuket(bucketblk, bktTi, searchkey, tx);
+	}
+
+	public boolean next() {
+      	return this.bucket.next();
+   	}
+
+	/**
+    * Returns the dataRID value from the current bucket record.
+    * @see simpledb.index.Index#getDataRid()
+    */
+   	public RID getDataRid() {
+      	return this.bucket.getDataRid();
+   	}
+
+	public void insert(Constant dataval, RID datarid) {
+
+	}
 
 
+   	public void delete(Constant dataval, RID datarid) {
+      	beforeFirst(dataval);
+      	this.bucket.delete(datarid);
+      	this.bucket.close();
+   	}
 
 
+   	public void close() {
+      	if (this.bucket != null)
+         	this.bucket.close();
+   	}
 
-
-
-
-
-
-
+///////////////////////////////////////
 
 
 	public LinearHashIndex(String idxname, Schema sch, Transaction tx) {
@@ -214,9 +250,9 @@ public class LinearHashIndex implements Index {
 	 */
 	public void insert(Constant val, RID rid) {
 		beforeFirst(val);
-        this.hashList.get(this.bktIndex).add(rid.blockNumber()); 
-        if (bucket.size() > NUM_BUCKETS)  //判断当前桶是否满了   
-            splitBucket();              //满了就进行分裂  
+		this.hashList.get(this.bktIndex).add(rid.blockNumber()); 
+		if (bucket.size() > NUM_BUCKETS)  //判断当前桶是否满了   
+			splitBucket();              //满了就进行分裂  
 
 		this.ts.insert();
 		this.ts.setInt("block", rid.blockNumber());
