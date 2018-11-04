@@ -1,12 +1,17 @@
+BUCKET_SIZE // 桶容量
+
 public class LHashFunction {
-	private int count; // 目前有多少个bucket
+	
 	private int round; // 第几回合
 	private int split; // 分裂点坐标
 	private int size; // function的最大bucket数量
-	// 是否还需要每个bucket的数量
+	private int count; // 目前有多少个bucket
+
+	// page format |round|split|size|count|blk
+
 	// 需要存储 blknum，因为这个不一定是自增的
 	LHashFunction() {
-
+		
 	}
 
 	public int search(Constant searchkey) {
@@ -37,6 +42,20 @@ public class LHashFunction {
 	// private method
 	private int hash(int key, int round) {
 		return key % (this.count * round);
+	}
+
+
+	private int getCount() {
+
+	}
+
+	private void setCount() {
+
+	}
+
+	private void 
+	private void setSize() {
+
 	}
 
 

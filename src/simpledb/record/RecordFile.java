@@ -118,12 +118,15 @@ public class RecordFile {
     * If the new record does not fit into an existing block,
     * then a new block is appended to the file.
     */
-   public void insert() {
+   public int insert() { // modify here! return how many record it pass
+	  int num = 0;
       while (!rp.insert()) {
          if (atLastBlock())
             appendBlock();
          moveTo(currentblknum + 1);
+         num ++;
       }
+      return num;
    }
    
    /**

@@ -14,7 +14,7 @@ public class LinearHashIndexMgr {
 		this.tx = tx;
 		this.lhfname = "lhidxcat" + idxname.hashCode();
 		init();
-   	}
+   }
 
    	private void init() {
    		this.lhti = tblmgr.getTableInfo("lhashcat", tx);
