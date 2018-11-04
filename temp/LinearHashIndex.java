@@ -27,6 +27,12 @@ public class LinearHashIndex implements Index {
 	private Constant searchkey = null;
 	private TableScan ts = null;
 
+
+	 
+	private LHashBuket bucket = null;
+
+
+
 	/**
 	 * Opens a linear hash index for the specified index.
 	 * @param idxname the name of the index
@@ -45,7 +51,7 @@ public class LinearHashIndex implements Index {
 		
 		// deal with function 
 		Schema funcsch = new Schema();
-		funcsch.addIntField("round");
+		funcsch.addIntField("");
 		funcsch.addIntField("count");
 		funcsch.addIntField("size");
 		funcsch.addIntField("split");
@@ -83,7 +89,11 @@ public class LinearHashIndex implements Index {
    	}
 
 	public void insert(Constant dataval, RID datarid) {
-
+		beforeFirst(dataval);
+		Boolean isfull = this.bucket.insert(datarid);
+		if (isfull)
+			this.hfunc.split(this.bucket.currentblk);
+		
 	}
 
 

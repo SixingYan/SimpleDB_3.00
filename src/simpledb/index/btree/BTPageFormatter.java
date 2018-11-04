@@ -37,7 +37,7 @@ public class BTPageFormatter implements PageFormatter {
     */
    public void format(Page page) {
       page.setInt(0, flag);
-      page.setInt(INT_SIZE, 0);  // #records = 0
+      page.setInt(INT_SIZE, 0);  // records = 0
       int recsize = ti.recordLength();
       for (int pos=2*INT_SIZE; pos+recsize<=BLOCK_SIZE; pos += recsize)
          makeDefaultRecord(page, pos);
