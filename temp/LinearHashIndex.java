@@ -9,7 +9,7 @@ import simpledb.index.Index;
  * A static hash implementation of the Index interface.
  * A fixed number of buckets is allocated (currently, 100),
  * and each bucket is implemented as a file of index records.
- * @author Edward Sciore
+ * @author Sixing Yan
  */
 public class LinearHashIndex {
 	// non-clustering !
