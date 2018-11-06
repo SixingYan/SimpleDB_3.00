@@ -86,9 +86,9 @@ public class SelectScan implements UpdateScan {
       us.delete();
    }
    
-   public void insert() {
+   public int insert() {
       UpdateScan us = (UpdateScan) s;
-      us.insert();
+      return us.insert();
    }
    
    public RID getRid() {

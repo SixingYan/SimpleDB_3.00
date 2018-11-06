@@ -4,7 +4,7 @@ import simpledb.record.RID;
 
 /**
  * The interface implemented by all updateable scans.
- * @author Edward Sciore
+ * @author Edward Sciore | Sixing Yan
  */
 public interface UpdateScan extends Scan {
    /**
@@ -30,8 +30,9 @@ public interface UpdateScan extends Scan {
    
    /**
     * Inserts a new record somewhere in the scan.
+    * @author Sixing Yan
     */
-   public void insert();
+   public int insert();
    
    /**
     * Deletes the current record from the scan.

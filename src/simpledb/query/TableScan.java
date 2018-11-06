@@ -9,7 +9,7 @@ import simpledb.record.*;
  * A table scan is just a wrapper for a RecordFile object;
  * most methods just delegate to the corresponding
  * RecordFile methods.
- * @author Edward Sciore
+ * @author Edward Sciore | Sixing Yan
  *
  */
 public class TableScan implements UpdateScan {
@@ -95,8 +95,11 @@ public class TableScan implements UpdateScan {
       rf.delete();
    }
    
-   public void insert() {
-      rf.insert();
+   /**
+    * @author Sixing Yan
+    */
+   public int insert() {
+      return rf.insert();
    }
    
    public RID getRid() {
