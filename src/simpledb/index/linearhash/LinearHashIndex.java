@@ -12,7 +12,7 @@ import simpledb.server.SimpleDB;
  * and each bucket is implemented as a file of index records.
  * @author Sixing Yan
  */
-public class LinearHashIndex {
+public class LinearHashIndex implements Index {
 	// non-clustering !
 	// bucket is part of the index files, each bucket is a file of indexing 
 	public static final int MAX_NAME = 16;
