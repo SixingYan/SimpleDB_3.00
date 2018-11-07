@@ -20,9 +20,12 @@ import simpledb.tx.Transaction;
 public class IndexContent {
 	public static String SEPERATOR = "@";
 	public static int IDXTYPE_IDX = 2;
+	public static String HASH = "lhsh";
 	public static String LINEAR_HASH = "lhsh";
+	public static String EXTENT_HASH = "ehsh";
 	public static String RTREE = "rtr";
 	public static String BTREE = "btr";
+	public static String KDTREE = "kdtr";
 	
 	private String idxname;
 	private Schema sch;
