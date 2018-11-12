@@ -14,11 +14,7 @@ public class Parser {
    public Parser(String s) {
       lex = new Lexer(s);
    }
-   public static void main(String[] args) {
-	   String sql = "create index majoridindex on STUDENT(MajorId)";
-	   Parser p = new Parser(sql);
-	   p.create();
-   }
+   
 // Methods for parsing predicates, terms, expressions, constants, and fields
    
    public String field() {
