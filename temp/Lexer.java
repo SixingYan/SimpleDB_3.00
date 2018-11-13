@@ -51,8 +51,8 @@ public class Lexer {
     }
 
     /**@author Sixing Yan
-     * Returns true if the current token is a string.
-     * @return true if the current token is a string
+     * Returns true if the current token is a number.
+     * @return true if the current token is a number
      */
     public boolean matchFloatConstant() {
         return tok.ttype == StreamTokenizer.TT_NUMBER;
@@ -125,12 +125,12 @@ public class Lexer {
      * Throws an exception if the current token is not
      * a float.
      * Otherwise, returns that string and moves to the next token.
-     * @return the string value of the current token
+     * @return the number value of the current token
      */
     public float eatFloatConstant() {
         if (!matchFloatConstant())
             throw new BadSyntaxException();
-        float i = (float) tok.nval;
+        float i = new Float(tok.nval);
         nextToken();
         return i;
     }
