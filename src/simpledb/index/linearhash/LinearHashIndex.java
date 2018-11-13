@@ -4,24 +4,21 @@ import simpledb.tx.Transaction;
 import simpledb.record.*;
 import simpledb.query.*;
 import simpledb.index.Index;
-import simpledb.server.SimpleDB;
 
 /**
- * A static hash implementation of the Index interface.
- * A fixed number of buckets is allocated (currently, 100),
- * and each bucket is implemented as a file of index records.
+ * A linear hash implementation of the Index interface.
+ * A default number of buckets is allocated at the beginning (currently, 25),
+ * and each bucket is implemented as a file of index records with a fixed number (currently, 100).
  * @author Sixing Yan
  */
-public class LinearHashIndex implements Index {
+public class LinearHashIndex {
 	// non-clustering !
-	// bucket is part of the index files, each bucket is a file of indexing 
-	public static final int MAX_NAME = 16;
-	public static final int DFLT_ROUND = 1;
-	public static final int DFLT_SIZE = 4;
-	public static final int DFLT_COUNT = 4;
-	public static final int DFLT_SPLIT = 0;
-	public static final int RDNUM_MAX = 100;
-	
+	// bucket is part of the index files, each bucket is a file of indexing
+	public static int DFLT_COUNT = 25;
+	public static int DFLT_SIZE = 100;
+	public static int DFLT_ROUND = 1;
+	public static int DFLT_SPLIT = 0;
+
 	private String idxname;
 	private Schema sch;
 	private Transaction tx;
@@ -48,8 +45,12 @@ public class LinearHashIndex implements Index {
 		initLinearHash();
 	}
 
+	/**
+	 * initial the linear hash funcion,
+	 * get the current parameter if this function exists,
+	 * or register a new funciton into the function file.
+	 */
 	public void initLinearHash() {
-		// 1. deal with function
 		String functbl = this.idxname + "func";
 		Schema funcsch = new Schema();
 		funcsch.addStringField("funcname", MAX_NAME);
@@ -58,58 +59,56 @@ public class LinearHashIndex implements Index {
 		funcsch.addIntField("count");
 		funcsch.addIntField("split");
 
-		if (tx.size("lnrhshcat") == 0) {
+		if (tx.size("lnrhshcat") == 0) // if the function file no exists
 			// create linear-hash file
-			SimpleDB.mdMgr().createTable("lnrhshcat", funcsch, this.tx); // tablemgr
-			
-			// insert a record about this function
-			this.funcTi = new TableInfo(functbl, funcsch);
+			SimpleDB.mdmgr().tblmgr.createTable("lnrhshcat", funcsch, this.tx);// tablemgr
+
+		// open linear-hash file
+		this.funcTi = new TableInfo(functbl, funcsch);
+
+		// get the related record
+		RecordFile fcatfile = new RecordFile(this.funcTi, tx);
+		Boolean flag = false;
+		while (fcatfile.next())
+			if (fcatfile.getString("funcname").equals(tblname)) {
+				flag = true;
+				this.size = fcatfile.getInt("size");
+				this.count = fcatfile.getInt("count");
+				this.split = fcatfile.getInt("split");
+				this.round = fcatfile.getInt("round");
+				break;
+			}
+		if (flag != true) // if there no exist the related record
 			createFunction(funcTi);
-		}
-		else {
-			// open linear-hash file
-			this.funcTi = new TableInfo(functbl, funcsch);
-    
-			// get the related record
-			RecordFile fcatfile = new RecordFile(this.funcTi, tx);
-			Boolean flag = false;
-			while (fcatfile.next())
-				if(fcatfile.getString("funcname").equals(this.idxname + "func")) {
-					flag = true;
-					this.size = fcatfile.getInt("size");
-					this.count = fcatfile.getInt("count");
-					this.split = fcatfile.getInt("split");
-					this.round = fcatfile.getInt("round");
-					break;
-				}	
-				if (flag != true)
-					createFunction(funcTi);
-		}
 	}
 
+	/**
+	 * register a linear hash fucntion,
+	 * insert a record of its parameters into the linear-hash-function file.
+	 * create the default buckets for this function.
+	 */
 	public void createFunction(TableInfo funcTi) {
-      	// insert one record into tblcat
-      	RecordFile fcatfile = new RecordFile(funcTi, tx);
-      	fcatfile.insert();
-      	fcatfile.setString("funcname", funcTi.fileName());
-      	fcatfile.setInt("round", DFLT_ROUND);
-      	fcatfile.setInt("size", DFLT_SIZE);
-      	fcatfile.setInt("count", DFLT_COUNT);
-      	fcatfile.setInt("split", DFLT_SPLIT);
-      	fcatfile.close();
+		// a record of parameter into tblcat
+		RecordFile fcatfile = new RecordFile(funcTi, tx);
+		fcatfile.insert();
+		fcatfile.setInt("funcname", funcTi.fileName());
+		fcatfile.setInt("round", DFLT_ROUND);
+		fcatfile.setInt("size", DFLT_SIZE);
+		fcatfile.setInt("count", DFLT_COUNT);
+		fcatfile.setInt("split", DFLT_SPLIT);
+		fcatfile.close();
 
-      	this.funcRid = fcatfile.currentRid();
+		// record the information of current function
+		this.funcRid = fcatfile.currentRid();
+		this.count = DFLT_COUNT;
+		this.size = DFLT_SIZE;
+		this.round = DFLT_ROUND;
+		this.split = DFLT_SPLIT;
 
-      	// init members
-      	this.count = DFLT_COUNT;
-      	this.size = DFLT_SIZE;
-      	this.round = DFLT_ROUND;
-      	this.split = DFLT_SPLIT;
-
-      	//where to initial the bucket?
-      	for (int bkt=0; bkt < this.count; bkt++)
-      		SimpleDB.mdMgr().createTable(this.idxname + bkt, this.sch, this.tx); // tablemgr
-	}
+		//initial default buckets
+		for (int bkt = 0; bkt < this.count; i++)
+			SimpleDB.mdmgr().tblmgr.createTable(this.idxname + bkt, this.sch, this.tx) // tablemgr
+		}
 
 	/**
 	 * Positions the index before the first index record
@@ -138,7 +137,7 @@ public class LinearHashIndex implements Index {
 	 */
 	public boolean next() {
 		while (ts.next())
-			// 做这一步其实为了防止hash collision
+			// avoid hash collision, different dataval but the same hashed key
 			if (ts.getVal("dataval").equals(searchkey))
 				return true;
 		return false;
@@ -167,12 +166,12 @@ public class LinearHashIndex implements Index {
 		this.ts.setVal("dataval", val);
 
 		if ((rdnum + 1) >= RDNUM_MAX)
-			splitBucket(val);
+			splitBucket();
 	}
 
 	/**
-	 * Works for splitBucket()
-	 * Inserts a new record into the table scan for the bucket.
+	 * Inserts a new record into the given table scan for the bucket,
+	 * only works for splitBucket() when transfer records to a new bucket.
 	 * @see simpledb.index.Index#insert(simpledb.query.Constant, simpledb.record.RID)
 	 */
 	public void insert(Constant val, RID rid, TableScan ts) {
@@ -183,7 +182,7 @@ public class LinearHashIndex implements Index {
 		ts.setVal("dataval", val);
 	}
 
-	
+
 
 	/**
 	 * Deletes the specified record from the table scan for
@@ -194,7 +193,7 @@ public class LinearHashIndex implements Index {
 	 */
 	public void delete(Constant val, RID rid) {
 		beforeFirst(val);
-		while(next())
+		while (next())
 			if (getDataRid().equals(rid)) {
 				ts.delete();
 				return;
@@ -211,72 +210,73 @@ public class LinearHashIndex implements Index {
 	}
 
 	/**
-	 * Closes the index by closing the current table scan.
-	 * @see simpledb.index.Index#close()
+	 * Calculate the bucket number by linear hash function,
+	 * cooperate with hash().
+	 * @return the bucket number
 	 */
 	private int linearHash() {
 		int key = this.searchkey.hashCode();
 		int bktnum = hash(key, this.round);
-		if (bktnum < this.split) 
+		if (bktnum < this.split)
 			bktnum = hash(key, this.round + 1);
 		return bktnum;
 	}
 
 	/**
-	 * Closes the index by closing the current table scan.
-	 * @see simpledb.index.Index#close()
+	 * Calculate the hashed key.
+	 * @param key the value to be hashed
+	 * @param round the current round number
 	 */
 	private int hash(int key, int round) {
 		return key % (this.count * round);
 	}
 
 	/**
-	 * Closes the index by closing the current table scan.
-	 * @see simpledb.index.Index#close()
+	 * Split the bucket when it is full after adding a new item.
+	 * @see simpledb.index.btree.BTreePage#split()
 	 */
-	private void splitBucket(Constant val) {
-		// new a bucket and open its scan
+	private void splitBucket() {
+		// 1. new a bucket and open its scan
 		String tblname = this.idxname + (this.count + 1);
-		SimpleDB.mdMgr().createTable(tblname, this.sch, this.tx); // tablemgr
+		SimpleDB.mdmgr().tblmgr.createTable(tblname, this.sch, this.tx) // tablemgr
 		TableInfo ti = new TableInfo(tblname, sch); // this will open a bucket
-		TableScan newts = new TableScan(ti, this.tx);
-
-		// move to the target old bucket
+		newts = new TableScan(ti, this.tx);
+		// 2. move to the target old bucket
 		beforeFirst(val);
-		while(next()){
-			int bkt = linearHash();
+		while (next()) {
+			int bkt = linearHash(ts.getVal("dataval"));
 			if (bkt >= this.size) {
 				RID rid = getDataRid();
 				insert(ts.getVal("dataval"), rid, newts); // rewrite function
 				delete(ts.getVal("dataval"), rid);
 			}
 		}
-
-		// update the parameter
+		// 3. update the parameter locally
 		this.count ++;
 		this.split ++;
-		if(this.split >= this.size){  //分裂点移动了一轮就更换新的哈希函数  
-			this.round ++;  
-			this.size = this.size * 2;  
+		if (this.split >= this.size) { //分裂点移动了一轮就更换新的哈希函数
+			this.round ++;
+			this.size = this.size * 2;
 			this.split = 0;
 		}
-
-		// write the new parameter into dist
+		// 4. write the new parameter into record file
 		updateFunction();
 	}
 
 	/**
-	 * Closes the index by closing the current table scan.
-	 * @see simpledb.index.Index#close()
+	 * Update the parameters of linear hash function,
+	 * including round/size/count/split parameters.
+	 * First, move to the record of current function,
+	 * then set the value by RecordFile
 	 */
 	private void updateFunction() {
 		RecordFile fcatfile = new RecordFile(this.funcTi, tx);
 		fcatfile.moveToRid(this.funcRid);
 
-		fcatfile.setInt("round", this.round);
-      	fcatfile.setInt("size", this.size);
-      	fcatfile.setInt("count", this.count);
-      	fcatfile.setInt("split", this.split);
-      	fcatfile.close();
+		tfcatfile.setInt("round", this.round);
+		fcatfile.setInt("size", this.size);
+		fcatfile.setInt("count", this.count);
+		fcatfile.setInt("split", this.split);
+		fcatfile.close();
 	}
 }
