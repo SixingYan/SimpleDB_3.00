@@ -6,16 +6,16 @@ import simpledb.query.*;
 import simpledb.index.Index;
 
 /**
- * A static hash implementation of the Index interface.
- * A fixed number of buckets is allocated (currently, 100),
- * and each bucket is implemented as a file of index records.
+ * A linear hash implementation of the Index interface.
+ * A default number of buckets is allocated at the beginning (currently, 25),
+ * and each bucket is implemented as a file of index records with a fixed number (currently, 100).
  * @author Sixing Yan
  */
 public class LinearHashIndex {
 	// non-clustering !
 	// bucket is part of the index files, each bucket is a file of indexing
-	public static int DFLT_COUNT = 4;
-	public static int DFLT_SIZE = 4;
+	public static int DFLT_COUNT = 25;
+	public static int DFLT_SIZE = 100;
 	public static int DFLT_ROUND = 1;
 	public static int DFLT_SPLIT = 0;
 
