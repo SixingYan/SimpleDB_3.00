@@ -6,7 +6,7 @@ import simpledb.record.Schema;
 
 /**
  * The SimpleDB parser.
- * @author Edward Sciore
+ * @author Edward Sciore | Sixing Yan
  */
 public class Parser {
 	private Lexer lex;
@@ -197,7 +197,7 @@ public class Parser {
 	}
 
 // Method for parsing create table commands
-	
+
 	/** @author Sixing Yan
 	 * Returns true if both of the term's expressions
 	 * evaluate to the same constant,

@@ -8,7 +8,7 @@ import java.util.*;
  * A schema contains the name and type of
  * each field of the table, as well as the length
  * of each varchar field.
- * @author Edward Sciore
+ * @author Edward Sciore | Sixing Yan
  *
  */
 public class Schema {

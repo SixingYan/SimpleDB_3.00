@@ -5,7 +5,7 @@ import java.io.*;
 
 /**
  * The lexical analyzer.
- * @author Edward Sciore
+ * @author Edward Sciore | Sixing Yan
  */
 public class Lexer {
     private Collection<String> keywords;
