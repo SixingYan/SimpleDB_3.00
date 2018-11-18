@@ -17,7 +17,7 @@ import simpledb.index.rtree.RTreeIndex;
 public class IndexContent {
 	private String idxname;
 	private Schema sch;
-	private tx;
+	private Transaction tx;
 	private String idxtype;
 	
 	public IndexContent(String idxname, Schema sch, tx) {

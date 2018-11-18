@@ -4,21 +4,24 @@ import simpledb.tx.Transaction;
 import simpledb.record.*;
 import simpledb.query.*;
 import simpledb.index.Index;
-
+import simpledb.index.hash.HashIndex;
+import simpledb.server.SimpleDB;
 /**
  * A linear hash implementation of the Index interface.
  * A default number of buckets is allocated at the beginning (currently, 25),
  * and each bucket is implemented as a file of index records with a fixed number (currently, 100).
  * @author Sixing Yan
  */
-public class LinearHashIndex {
+public class LinearHashIndex implements Index {
 	// non-clustering !
 	// bucket is part of the index files, each bucket is a file of indexing
 	public static int DFLT_COUNT = 25;
-	public static int DFLT_SIZE = 100;
+	public static int DFLT_SIZE = 25;
 	public static int DFLT_ROUND = 1;
 	public static int DFLT_SPLIT = 0;
-
+	public static int DFLT_CPCT = 100; // the capacity of each bucket
+	public static int MAX_NAME = 20;
+	
 	private String idxname;
 	private Schema sch;
 	private Transaction tx;
@@ -40,7 +43,7 @@ public class LinearHashIndex {
 	 */
 	public LinearHashIndex(String idxname, Schema sch, Transaction tx) {
 		this.idxname = idxname;
-		this.sch = sch;
+		this.sch = sch; // 这个似乎是固定的，在IndexInfo的schema()这个函数获得
 		this.tx = tx;
 		initLinearHash();
 	}
@@ -61,7 +64,7 @@ public class LinearHashIndex {
 
 		if (tx.size("lnrhshcat") == 0) // if the function file no exists
 			// create linear-hash file
-			SimpleDB.mdmgr().tblmgr.createTable("lnrhshcat", funcsch, this.tx);// tablemgr
+			SimpleDB.mdMgr().createTable("lnrhshcat", funcsch, this.tx);// tablemgr
 
 		// open linear-hash file
 		this.funcTi = new TableInfo(functbl, funcsch);
@@ -70,7 +73,7 @@ public class LinearHashIndex {
 		RecordFile fcatfile = new RecordFile(this.funcTi, tx);
 		Boolean flag = false;
 		while (fcatfile.next())
-			if (fcatfile.getString("funcname").equals(tblname)) {
+			if (fcatfile.getString("funcname").equals(this.funcTi.fileName())) {
 				flag = true;
 				this.size = fcatfile.getInt("size");
 				this.count = fcatfile.getInt("count");
@@ -91,7 +94,7 @@ public class LinearHashIndex {
 		// a record of parameter into tblcat
 		RecordFile fcatfile = new RecordFile(funcTi, tx);
 		fcatfile.insert();
-		fcatfile.setInt("funcname", funcTi.fileName());
+		fcatfile.setString("funcname", funcTi.fileName());
 		fcatfile.setInt("round", DFLT_ROUND);
 		fcatfile.setInt("size", DFLT_SIZE);
 		fcatfile.setInt("count", DFLT_COUNT);
@@ -106,9 +109,9 @@ public class LinearHashIndex {
 		this.split = DFLT_SPLIT;
 
 		//initial default buckets
-		for (int bkt = 0; bkt < this.count; i++)
-			SimpleDB.mdmgr().tblmgr.createTable(this.idxname + bkt, this.sch, this.tx) // tablemgr
-		}
+		for (int bkt = 0; bkt < this.count; bkt++)
+			SimpleDB.mdMgr().createTable(this.idxname + bkt, this.sch, this.tx); // tablemgr
+	}
 
 	/**
 	 * Positions the index before the first index record
@@ -165,8 +168,8 @@ public class LinearHashIndex {
 		this.ts.setInt("id", rid.id());
 		this.ts.setVal("dataval", val);
 
-		if ((rdnum + 1) >= RDNUM_MAX)
-			splitBucket();
+		if ((rdnum + 1) >= DFLT_CPCT) // reach the maximum bucket capacity 
+			splitBucket(val);
 	}
 
 	/**
@@ -181,8 +184,6 @@ public class LinearHashIndex {
 		ts.setInt("id", rid.id());
 		ts.setVal("dataval", val);
 	}
-
-
 
 	/**
 	 * Deletes the specified record from the table scan for
@@ -235,16 +236,16 @@ public class LinearHashIndex {
 	 * Split the bucket when it is full after adding a new item.
 	 * @see simpledb.index.btree.BTreePage#split()
 	 */
-	private void splitBucket() {
+	private void splitBucket(Constant val) {
 		// 1. new a bucket and open its scan
 		String tblname = this.idxname + (this.count + 1);
-		SimpleDB.mdmgr().tblmgr.createTable(tblname, this.sch, this.tx) // tablemgr
+		SimpleDB.mdMgr().createTable(tblname, this.sch, this.tx); // tablemgr
 		TableInfo ti = new TableInfo(tblname, sch); // this will open a bucket
-		newts = new TableScan(ti, this.tx);
+		TableScan newts = new TableScan(ti, this.tx);
 		// 2. move to the target old bucket
 		beforeFirst(val);
 		while (next()) {
-			int bkt = linearHash(ts.getVal("dataval"));
+			int bkt = linearHash();
 			if (bkt >= this.size) {
 				RID rid = getDataRid();
 				insert(ts.getVal("dataval"), rid, newts); // rewrite function
@@ -273,10 +274,24 @@ public class LinearHashIndex {
 		RecordFile fcatfile = new RecordFile(this.funcTi, tx);
 		fcatfile.moveToRid(this.funcRid);
 
-		tfcatfile.setInt("round", this.round);
+		fcatfile.setInt("round", this.round);
 		fcatfile.setInt("size", this.size);
 		fcatfile.setInt("count", this.count);
 		fcatfile.setInt("split", this.split);
 		fcatfile.close();
+	}
+	
+	/**
+	 * Returns the cost of searching an index file having the
+	 * specified number of blocks.
+	 * The method assumes that all buckets are about the
+	 * same size, and so the cost is simply the size of
+	 * the bucket.
+	 * @param numblocks the number of blocks of index records (not used here)
+	 * @param rpb the number of records per block (not used here)
+	 * @return the cost of traversing the index
+	 */
+	public static int searchCost(int numblocks, int rpb){
+		return LinearHashIndex.DFLT_CPCT/2; //assume every bucket is used a half
 	}
 }

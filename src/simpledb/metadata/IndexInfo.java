@@ -6,6 +6,7 @@ import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
 import simpledb.index.Index;
+import simpledb.index.IndexContent;
 import simpledb.index.hash.HashIndex; 
 //import simpledb.index.btree.BTreeIndex; //in case we change to btree indexing
 
@@ -19,7 +20,7 @@ import simpledb.index.hash.HashIndex;
  * @author Edward Sciore
  */
 public class IndexInfo {
-   private String idxname, fldname;
+   public String idxname, fldname; // change to public
    private Transaction tx;
    private TableInfo ti;
    private StatInfo si;
@@ -47,7 +48,10 @@ public class IndexInfo {
    public Index open() {
       Schema sch = schema();
       // Create new HashIndex for hash indexing
-      return new HashIndex(idxname, sch, tx);
+      
+      //return new HashIndex(idxname, sch, tx);
+      IndexContent ic = new IndexContent(idxname, sch, tx);
+      return ic.getIndex();
    }
    
    /**

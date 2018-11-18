@@ -1,5 +1,6 @@
 package simpledb.parse;
 
+
 /**
  * The parser for the <i>create index</i> statement.
  * @author Edward Sciore

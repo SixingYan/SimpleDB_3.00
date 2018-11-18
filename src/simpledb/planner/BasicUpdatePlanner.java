@@ -8,7 +8,7 @@ import simpledb.query.*;
 
 /**
  * The basic planner for SQL update statements.
- * @author sciore
+ * @author Edward Sciore
  */
 public class BasicUpdatePlanner implements UpdatePlanner {
    
@@ -54,9 +54,6 @@ public class BasicUpdatePlanner implements UpdatePlanner {
    
    public int executeCreateTable(CreateTableData data, Transaction tx) {
       SimpleDB.mdMgr().createTable(data.tableName(), data.newSchema(), tx);
-      CreateIndexData idxdata = data.hasPrimaryKey();
-      if (idxdata != null) 
-         executeCreateIndex(idxdata, tx);
       return 0;
    }
    
