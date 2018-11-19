@@ -1,9 +1,9 @@
 package simpledb.planner;
 
-import java.util.Map;
 import simpledb.tx.Transaction;
 import simpledb.query.*;
-import simpledb.metadata.IndexInfo;
+import simpledb.index.IndexFinder;
+import simpledb.index.query.IndexSelectPlan;
 import simpledb.parse.*;
 import simpledb.server.SimpleDB;
 import java.util.*;
@@ -31,7 +31,7 @@ public class IndexQueryPlanner implements QueryPlanner {
 			p = new ProductPlan(p, nextplan);
 
 		//Step 3: Add a selection plan for the predicate
-		IndexFinder ifder = new IndexFinder(data);
+		IndexFinder ifder = new IndexFinder(data, tx);
 		p = ifder.hasIndexInfo() ? new IndexSelectPlan(p, ifder.getIndexInfo(), ifder.getSearchKey(), tx) : new SelectPlan(p, data.pred());
 
 		//Step 4: Project on the field names
