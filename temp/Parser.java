@@ -10,7 +10,7 @@ import simpledb.record.Schema;
  */
 public class Parser {
 	private Lexer lex;
-	private String keyfield = null;
+	public static String DFLT_OPRT = "=";
 
 	public Parser(String s) {
 		lex = new Lexer(s);
@@ -32,37 +32,31 @@ public class Parser {
 	public String operator() {
 		if (lex.matchOperator())
 			return lex.eatOperator();
-	}
-
-	/** @author Sixing Yan
-	 * Returns true if both of the term's expressions
-	 * evaluate to the same constant,
-	 * Only work with 'primary key'
-	 * @param s the scan
-	 * @return true if both expressions have the same value in the scan
-	*/
-	public void constraint(String fldname) {
-		if (lex.matchConstraint())
-			// execute create index
-			this.keyfield = fldname;
+		return DFLT_OPRT;
 	}
 
 	public Expression expression() {
 		if (lex.matchId())
 			return new FieldNameExpression(field());
-		else
+		else if ()
 			return new ConstantExpression(constant());
+		else
+			return null;
 	}
 
 	public Term term() {
 		Expression lhs = expression();
-		//lex.eatDelim('=');
-		String opt = operator();
-		Expression rhs = expression();
-		return new Term(lhs, rhs, opt);
+		if (lhs != null) {
+			String opt = operator();
+			Expression rhs = expression();
+			return new Term(lhs, rhs, opt);
+		}
+		return null;
 	}
 
 	public Predicate predicate() {
+		Term t = term();
+		if t != null
 		Predicate pred = new Predicate(term());
 		if (lex.matchKeyword("and")) {
 			lex.eatKeyword("and");
@@ -71,22 +65,80 @@ public class Parser {
 		return pred;
 	}
 
+
+	private boolean matchFn (String w) {
+		String fname = ""; // 这里要看是否含有()，然后再切除前面部分
+
+		return lex.fns().contains(fname);
+	}
+
+	private Map<String, List> eatFn () {
+		HashMap<String, ArrayList> fn = new HashMap<String, ArrayList>();
+		ArrayList<String> pms = new ArrayList<String>();
+		fname = ""; // 这里要切割出函数名和每个参数
+		fn.put(fname, pms);
+		return fn;
+	}
+	
 // Methods for parsing queries
 
 	public QueryData query() {
+		// Basic elements of a query
 		lex.eatKeyword("select");
-		Collection<String> fields = selectList();
+		Collection<String> rawfields = selectList();
+		Collection<String> fields = filedList();
+		Collection<Map<String, List>> aggfns = aggfnsList();
+
 		lex.eatKeyword("from");
 		Collection<String> tables = tableList();
+
 		Predicate pred = new Predicate();
 		if (lex.matchKeyword("where")) {
 			lex.eatKeyword("where");
 			pred = predicate();
 		}
-		return new QueryData(fields, tables, pred);
+
+		QueryData qd = new QueryData(fields, tables, pred)
+
+		if (lex.matchKeyword("groupby")) {
+			lex.eatKeyword("groupby");
+			groupflds = groupbyList();
+			qd.setGroupByFields(groupflds);
+		}
+
+		if (aggfns.isEmpty() != false)
+			qd.setAggfns(aggfns);
+
+		return qd;
+	}
+
+	private Collection<String> groupby() {
+		Collection<String> L = new ArrayList<String>();
+		L.add(field());
+		if (lex.matchDelim(',')) {
+			lex.eatDelim(',');
+			L.addAll(selectList());
+		}
+		return L;
+	}
+
+	private Collection<Map<String, List>> aggfnsList(Collection<String> fields) {
+		// 这里先不要实例化函数，直给出函数名和参数列表
+		Collection<String> L = new ArrayList<String>();
+
+		Iterator<String> it = fields.iterator();
+		while (it.hasNext()) {
+			String w = it.next();
+			if (matchFn(w))
+				L.add(eatFn(it.next()));
+		}
+
+		return L
+
 	}
 
 	private Collection<String> selectList() {
+		// 这里还要加入 distance(x,y) 类型的判断，不能遇到 “,” 就分割
 		Collection<String> L = new ArrayList<String>();
 		L.add(field());
 		if (lex.matchDelim(',')) {
@@ -198,24 +250,6 @@ public class Parser {
 
 // Method for parsing create table commands
 
-	/** @author Sixing Yan
-	 * Returns true if both of the term's expressions
-	 * evaluate to the same constant,
-	 * Only work with 'primary key'
-	 * @param s the scan
-	 * @return true if both expressions have the same value in the scan
-	*/
-	public CreateTableData createTable() {
-		lex.eatKeyword("table");
-		String tblname = lex.eatId();
-		lex.eatDelim('(');
-		Schema sch = fieldDefs();
-		lex.eatDelim(')');
-		if (this.keyfield != null)
-			return new CreateTableData(this.tblname, this.sch, this.keyfield);
-		return new CreateTableData(this.tblname, this.sch);
-	}
-
 	private Schema fieldDefs() {
 		Schema schema = fieldDef();
 		if (lex.matchDelim(',')) {
@@ -251,16 +285,21 @@ public class Parser {
 			schema.addStringField(fldname, strLen);
 		} else {
 			lex.eatKeyword("float");
-			lex.eatDelim('(');
-			int strLen = lex.eatFloatConstant();
-			lex.eatDelim(')');
-			schema.addFloatField(fldname, strLen);
+			schema.addFloatField(fldname);
 		}
-		constraint(fldname);
 		return schema;
 	}
 
 // Method for parsing create view commands
+
+	public CreateTableData createTable() {
+		lex.eatKeyword("table");
+		String tblname = lex.eatId();
+		lex.eatDelim('(');
+		Schema sch = fieldDefs();
+		lex.eatDelim(')');
+		return new CreateTableData(tblname, sch);
+	}
 
 	public CreateViewData createView() {
 		lex.eatKeyword("view");

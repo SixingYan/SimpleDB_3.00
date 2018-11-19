@@ -11,6 +11,7 @@ public class Lexer {
     private Collection<String> keywords;
     private Collection<String> operators;
     private StreamTokenizer tok;
+    private Collection<String> functions;
 
     /**
      * Creates a new lexical analyzer for SQL statement s.
@@ -180,7 +181,7 @@ public class Lexer {
     }
 
     private void initKeywords() {
-        keywords = Arrays.asList("select", "from", "where", "and",
+        this.keywords = Arrays.asList("select", "from", "where", "and",
                                  "insert", "into", "values", "delete", "update", "set",
                                  "create", "table", "int", "varchar", "float", "view", "as", "index", "on");
     }
@@ -192,7 +193,15 @@ public class Lexer {
      * @param w the keyword string
      */
     private void initOperators() {
-        operators = Arrays.asList(">", "<", "<>", ">=", "<=", "=", "like");
+        this.operators = Arrays.asList(">", "<", "<>", ">=", "<=", "=", "like");
     }
 
+
+    private void initFunctions() {
+        this.functions = Arrays.asList("count", "max", "distance");
+    }
+
+    public Collection<String> fns() {
+        return this.functions;
+    }
 }
