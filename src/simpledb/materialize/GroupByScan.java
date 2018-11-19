@@ -58,7 +58,7 @@ public class GroupByScan implements Scan {
          fn.processFirst(s);
       groupval = new GroupValue(s, groupfields);
       while(moregroups = s.next()) {
-         GroupValue gv = new GroupValue(s, groupfields);
+         GroupValue gv = new GroupValue(s, groupfields); // 这个和groupval 有什么不一样呢
          if (!groupval.equals(gv))
             break;
          for (AggregationFn fn : aggfns)

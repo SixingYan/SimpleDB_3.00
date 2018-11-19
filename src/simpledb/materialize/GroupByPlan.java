@@ -33,9 +33,9 @@ public class GroupByPlan implements Plan {
       this.groupfields = groupfields;
       this.aggfns = aggfns;
       for (String fldname : groupfields)
-         sch.add(fldname, p.schema());
+         sch.add(fldname, p.schema()); // create a new schema 
       for (AggregationFn fn : aggfns)
-         sch.addIntField(fn.fieldName());
+         sch.addIntField(fn.fieldName()); // add the column of function result
    }
    
    /**
