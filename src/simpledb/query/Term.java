@@ -16,7 +16,7 @@ public class Term {
      * @param lhs  the LHS expression
      * @param rhs  the RHS expression
      */
-    public Term(Expression lhs, Expression rhs, String operator) {    
+    public Term(Expression lhs, Expression rhs, String operator) {
         this.lhs = lhs;
         this.rhs = rhs;
         this.operator = operator;
@@ -53,6 +53,48 @@ public class Term {
             return Integer.MAX_VALUE;
     }
 
+
+    /**
+     * Determines if this term is of the form "F (*) c"
+     * where F is the specified field and c is some constant.
+     * If so, the method returns that constant.
+     * If not, the method returns null.
+     * @param fldname the name of the field
+     * @return either the constant or null
+     */
+    public Constant operatesWithConstant(String fldname) {
+        if (lhs.isFieldName() &&
+                lhs.asFieldName().equals(fldname) &&
+                rhs.isConstant())
+            return rhs.asConstant();
+        else if (rhs.isFieldName() &&
+                 rhs.asFieldName().equals(fldname) &&
+                 lhs.isConstant())
+            return lhs.asConstant();
+        else
+            return null;
+    }
+
+    /**
+     * Determines if this term is of the form "F1 (*) F2"
+     * where F1 is the specified field and F2 is another field.
+     * If so, the method returns the name of that field.
+     * If not, the method returns null.
+     * @param fldname the name of the field
+     * @return either the name of the other field, or null
+     */
+    public String operatesWithField(String fldname) {
+        if (lhs.isFieldName() &&
+                lhs.asFieldName().equals(fldname) &&
+                rhs.isFieldName())
+            return rhs.asFieldName();
+        else if (rhs.isFieldName() &&
+                 rhs.asFieldName().equals(fldname) &&
+                 lhs.isFieldName())
+            return lhs.asFieldName();
+        else
+            return null;
+    }
 
     /**
      * Determines if this term is of the form "F (*) c"
@@ -135,7 +177,7 @@ public class Term {
         if (this.operator == "<>" & compare != 0) return true;
         return false;
     }
-    
+
     /** @author Sixing Yan
      * Returns true if both of the term's expressions
      * evaluate to the same constant,
@@ -144,11 +186,11 @@ public class Term {
      * @return true if both expressions have the same value in the scan
     */
     public Boolean isLikeSatisfied(Constant lhsval, Constant rhsval) {
-    	String lval = (String) lhsval.asJavaVal();
-    	String rval = (String) rhsval.asJavaVal();
+        String lval = (String) lhsval.asJavaVal();
+        String rval = (String) rhsval.asJavaVal();
         String keyword = rval.split("%")[0];
         if (keyword.startsWith(lval))
             return true;
         return false;
-    }   
+    }
 }

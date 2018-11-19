@@ -26,13 +26,13 @@ public class IndexContent {
 	public static String BTREE = "btr";
 	public static String KDTREE = "kdtr";
 	public static int NOT_USED = -1;
-	
+
 	private String idxname;
 	private Schema sch;
 	private Transaction tx;
 	private String idxtype;
 	private IndexInfo ii;
-	
+
 	public IndexContent(String idxname, Schema sch, Transaction tx) {
 		this.idxname = idxname;
 		this.sch = sch;
@@ -43,9 +43,9 @@ public class IndexContent {
 		this.ii = ii;
 		getIndexType();
 	}
-	
+
 	/**
-	 * @return search cost 
+	 * @return search cost
 	 */
 	public int getIndexSearchCost() {
 		int searchcost;
@@ -54,14 +54,20 @@ public class IndexContent {
 		else if (this.idxtype.equals(RTREE))
 			searchcost = RTreeIndex.searchCost(NOT_USED, NOT_USED);
 		else if (this.idxtype.equals(BTREE))
-			searchcost = BTreeIndex.searchCost(tx.size(idxname + "dir" +".tbl"), tx.size(idxname + "leaf" +".tbl"));
-		else
-			searchcost = HashIndex.searchCost(tx.size(计算所有的bucket携带的block), NOT_USED);
+			searchcost = BTreeIndex.searchCost(tx.size(idxname + "dir" + ".tbl"), tx.size(idxname + "leaf" + ".tbl"));
+		else {
+			int totalBlock = 0;
+			for (int i = 0; i < HashIndex.NUM_BUCKETS; i++)
+				totalBlock = totalBlock + tx.size(idxname + i);
+			searchcost = HashIndex.searchCost(totalBlock, NOT_USED);
+		}
+
 		return searchcost;
 	}
+
 	/**
-	 * 
-	 * @return instance of index 
+	 *
+	 * @return instance of index
 	 */
 	public Index getIndex() {
 		Index idx;
@@ -75,12 +81,12 @@ public class IndexContent {
 			idx = new HashIndex(idxname, sch, tx);
 		return idx;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 */
 	private void getIndexType() {
 		String[] parts = this.idxname.split(SEPERATOR);
 		this.idxtype = parts[IDXTYPE_IDX];
-	}	
+	}
 }

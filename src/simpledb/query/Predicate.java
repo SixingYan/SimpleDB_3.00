@@ -100,6 +100,26 @@ public class Predicate {
 			return result;
 	}
 
+
+	public Constant operatesWithConstant(String fldname) {
+		for (Term t : terms) {
+			Constant c = t.operatesWithConstant(fldname);
+			if (c != null)
+				return c;
+		}
+		return null;
+	}
+
+	public String operatesWithField(String fldname) {
+		for (Term t : terms) {
+			String s = t.operatesWithField(fldname);
+			if (s != null)
+				return s;
+		}
+		return null;
+	}
+
+
 	/**
 	* Determines if there is a term of the form "F=c"
 	* where F is the specified field and c is some constant.
@@ -116,11 +136,6 @@ public class Predicate {
 		}
 		return null;
 	}
-
-	
-
-
-
 
 	/**
 	* Determines if there is a term of the form "F1=F2"
