@@ -3,6 +3,7 @@ package simpledb.planner;
 import java.util.ArrayList;
 import java.util.List;
 
+import simpledb.materialize.GroupByPlan;
 import simpledb.parse.QueryData;
 import simpledb.query.Plan;
 import simpledb.query.ProductPlan;
