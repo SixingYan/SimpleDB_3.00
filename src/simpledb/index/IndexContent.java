@@ -52,7 +52,7 @@ public class IndexContent {
 		if (this.idxtype.equals(LINEAR_HASH))
 			searchcost = LinearHashIndex.searchCost(NOT_USED, NOT_USED);
 		else if (this.idxtype.equals(RTREE))
-			searchcost = RTreeIndex.searchCost(NOT_USED, NOT_USED);
+			searchcost = -1;//RTreeIndex.searchCost(NOT_USED, NOT_USED);
 		else if (this.idxtype.equals(BTREE))
 			searchcost = BTreeIndex.searchCost(tx.size(idxname + "dir" + ".tbl"), tx.size(idxname + "leaf" + ".tbl"));
 		else {
