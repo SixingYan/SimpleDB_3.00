@@ -67,19 +67,12 @@ public class Parser {
 
 
 	private boolean matchFn (String w) {
-		String fname = ""; // 这里要看是否含有()，然后再切除前面部分
-
-		return lex.fns().contains(fname);
+		if (w.contains("("))
+			return lex.fns().contains(w.split("(")[0]);
+		else
+			return false;
 	}
 
-	private Map<String, List> eatFn () {
-		HashMap<String, ArrayList> fn = new HashMap<String, ArrayList>();
-		ArrayList<String> pms = new ArrayList<String>();
-		fname = ""; // 这里要切割出函数名和每个参数
-		fn.put(fname, pms);
-		return fn;
-	}
-	
 // Methods for parsing queries
 
 	public QueryData query() {
@@ -87,7 +80,7 @@ public class Parser {
 		lex.eatKeyword("select");
 		Collection<String> rawfields = selectList();
 		Collection<String> fields = filedList();
-		Collection<Map<String, List>> aggfns = aggfnsList();
+		Collection<String> aggfns = aggfnsList();
 
 		lex.eatKeyword("from");
 		Collection<String> tables = tableList();
@@ -98,16 +91,26 @@ public class Parser {
 			pred = predicate();
 		}
 
-		QueryData qd = new QueryData(fields, tables, pred)
-
+		// group by
+		Collection<String> groupflds;
 		if (lex.matchKeyword("groupby")) {
 			lex.eatKeyword("groupby");
 			groupflds = groupbyList();
-			qd.setGroupByFields(groupflds);
 		}
 
-		if (aggfns.isEmpty() != false)
+		// not groupby but aggfns, move aggfns to projectplan
+		if (groupflds == null & !aggfns.isEmpty()) {
+			fields.addAll(aggfns);
+			aggfns.clean();
+		}
+
+		QueryData qd = new QueryData(fields, tables, pred);
+
+		// it will create the parameters of groupbyplan
+		if (groupflds != null) {
+			qd.setGroupByFields(groupflds);
 			qd.setAggfns(aggfns);
+		}
 
 		return qd;
 	}
@@ -122,19 +125,23 @@ public class Parser {
 		return L;
 	}
 
-	private Collection<Map<String, List>> aggfnsList(Collection<String> fields) {
-		// 这里先不要实例化函数，直给出函数名和参数列表
+	private Collection<String> filedList(Collection<String> rawfields) {
+		// 判断哪些是直接的field
+		Collection<String> L = new ArrayList<String>();
+
+
+		return L
+	}
+
+	private Collection<String> aggfnsList(Collection<String> fields) {
+		// 这里先不要实例化函数，直给出完整的形式，max(id)
 		Collection<String> L = new ArrayList<String>();
 
 		Iterator<String> it = fields.iterator();
-		while (it.hasNext()) {
-			String w = it.next();
-			if (matchFn(w))
-				L.add(eatFn(it.next()));
-		}
-
+		while (it.hasNext())
+			if (matchFn(it.next()))
+				L.add(it.next());
 		return L
-
 	}
 
 	private Collection<String> selectList() {

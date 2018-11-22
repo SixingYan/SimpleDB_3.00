@@ -63,17 +63,6 @@ public class QueryData {
 		FunctionFinder ff = new FunctionFinder();
 		for (Map<String, List> fn : aggfns)
 			this.aggfns.add(ff.getFn(fn));
-
-		if (this.groupfields == null)
-			defaultGroupByFields();
-	}
-
-	/**
-	* Get the defualt groupby fields,
-	* called when no assigned groupby field but do aggfns
-	*/
-	public void defaultGroupByFields() {
-		每个有agg的fields都算一个groupbyfield吗 ?
 	}
 
 	public boolean hasGroupBy() {
