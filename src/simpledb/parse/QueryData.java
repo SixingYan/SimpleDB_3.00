@@ -65,7 +65,7 @@ public class QueryData {
 		FunctionFinder ff = new FunctionFinder();
 		for (String fn : aggfns)
 			if (ff.hasFn(fn))
-				this.aggfns.add(ff.getFn());
+				this.aggfns.add(ff.getAggFn());
 	}
 
 	public boolean hasGroupBy() {
