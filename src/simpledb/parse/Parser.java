@@ -1,9 +1,11 @@
 package simpledb.parse;
 
 import java.util.*;
+
+import simpledb.materialize.FunctionFinder;
 import simpledb.query.*;
 import simpledb.record.Schema;
-
+import simpledb.query.Predicate;
 /**
  * The SimpleDB parser.
  * @author Edward Sciore | Sixing Yan
@@ -25,6 +27,8 @@ public class Parser {
 	public Constant constant() {
 		if (lex.matchStringConstant())
 			return new StringConstant(lex.eatStringConstant());
+		else if (lex.matchFloatConstant())
+			return new FloatConstant(lex.eatFloatConstant());
 		else
 			return new IntConstant(lex.eatIntConstant());
 	}
@@ -34,46 +38,154 @@ public class Parser {
 			return lex.eatOperator();
 		return DFLT_OPRT;
 	}
-
+	/**
+	 * 
+	 * @return
+	 */
 	public Expression expression() {
-		if (lex.matchId())
-			return new FieldNameExpression(field());
-		else
-			return new ConstantExpression(constant());
+		if (lex.matchKeyword())
+			return null;
+		else {
+			if (lex.matchId())
+				return new FieldNameExpression(field());
+			else if (lex.matchStringConstant() | lex.matchFloatConstant() | lex.matchIntConstant())
+				return new ConstantExpression(constant());
+			else
+				return null;
+		}
 	}
 
 	public Term term() {
 		Expression lhs = expression();
-		//lex.eatDelim('=');
-		String opt = operator();
-		Expression rhs = expression();
-		return new Term(lhs, rhs, opt);
+		if (lhs != null) {
+			String opt = operator();
+			Expression rhs = expression();
+			return new Term(lhs, rhs, opt);
+		}
+		return null;
 	}
-
+	/**
+	 * 
+	 * @return
+	 */
 	public Predicate predicate() {
-		Predicate pred = new Predicate(term());
-		if (lex.matchKeyword("and")) {
-			lex.eatKeyword("and");
-			pred.conjoinWith(predicate());
+		Predicate pred = null;
+		Term t = term();
+		if (t != null) {
+			pred = new Predicate(t);
+			if (lex.matchKeyword("and")) {
+				lex.eatKeyword("and");
+				pred.conjoinWith(predicate());
+			}
 		}
 		return pred;
+	}
+	/**
+	 * 
+	 * @param w
+	 * @return
+	 */
+	private boolean matchFn (String w) {
+		if (w.contains("("))
+			return lex.fns().contains(w.split("(")[0]);
+		else
+			return false;
+	}
+
+	private boolean isAggfn (String w) {
+		if (w.contains("("))
+			return lex.aggfns().contains(w.split("(")[0]);
+		else
+			return false;
 	}
 
 // Methods for parsing queries
 
+	/**
+	 * 
+	 * @return
+	 */
 	public QueryData query() {
+		// 1. Basic elements of a query
 		lex.eatKeyword("select");
-		Collection<String> fields = selectList();
+		Collection<String> rawfields = selectList();
+		Collection<String> fields = filedList(rawfields);
+		Collection<String> aggfns = aggfnsList(rawfields);
+
 		lex.eatKeyword("from");
 		Collection<String> tables = tableList();
+
 		Predicate pred = new Predicate();
 		if (lex.matchKeyword("where")) {
 			lex.eatKeyword("where");
 			pred = predicate();
 		}
-		return new QueryData(fields, tables, pred);
+
+		// 2. create a query data
+		QueryData qd = new QueryData(fields, tables, pred);
+
+		// 3. group by
+		if (lex.matchKeyword("groupby")) {
+			lex.eatKeyword("groupby");
+			Collection<String> groupflds = groupby();
+			qd.setGroupByFields(groupflds);
+			qd.setAggfns(aggfns);
+		}
+		return qd;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
+	private Collection<String> groupby() {
+		Collection<String> L = new ArrayList<String>();
+		L.add(field());
+		if (lex.matchDelim(',')) {
+			lex.eatDelim(',');
+			L.addAll(selectList());
+		}
+		return L;
+	}
+	
+	/**
+	 * 
+	 * @param rawfields
+	 * @return
+	 */
+	private Collection<String> filedList(Collection<String> rawfields) {
+		FunctionFinder ff = new FunctionFinder();
+		Collection<String> L = new ArrayList<String>();
+		Iterator<String> it = rawfields.iterator();
+		while (it.hasNext())
+			if (matchFn(it.next())){
+				if (!isAggfn(it.next())) // not aggregate function
+					L.addAll(ff.getFields(it.next()));
+			}
+			else // not function
+				L.add(it.next());
+
+		return L;
+	}
+	
+	/**
+	 * 
+	 * @param rawfields
+	 * @return 
+	 */
+	private Collection<String> aggfnsList(Collection<String> rawfields) {
+		Collection<String> L = new ArrayList<String>();
+		Iterator<String> it = rawfields.iterator();
+		while (it.hasNext())
+			if (matchFn(it.next()) & isAggfn(it.next()))
+				L.add(it.next());
+		return L;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	private Collection<String> selectList() {
 		Collection<String> L = new ArrayList<String>();
 		L.add(field());
@@ -236,7 +348,7 @@ public class Parser {
 		lex.eatDelim(')');
 		return new CreateTableData(tblname, sch);
 	}
-	
+
 	public CreateViewData createView() {
 		lex.eatKeyword("view");
 		String viewname = lex.eatId();
