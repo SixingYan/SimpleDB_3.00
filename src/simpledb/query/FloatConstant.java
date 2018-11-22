@@ -5,21 +5,21 @@ package simpledb.query;
  * @author Sixing Yan
  */
 public class FloatConstant implements Constant {
-   private float val;
+   private Float val;
    
    /**
     * Create a constant by wrapping the specified int.
-    * @param n the int value
+    * @param n the float value
     */
    public FloatConstant(float n) {
       val = n;
    }
    
    /**
-    * Unwraps the Integer and returns it.
+    * Unwraps the Float and returns it.
     * @see simpledb.query.Constant#asJavaVal()
     */
-   public Object asJavaVal() {
+   public Float asJavaVal() {
       return val;
    }
    

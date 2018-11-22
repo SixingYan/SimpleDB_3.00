@@ -12,7 +12,8 @@ public class Lexer {
     private Collection<String> operators;
     private StreamTokenizer tok;
     private Collection<String> functions;
-
+    private Collection<String> aggFns;
+    
     /**
      * Creates a new lexical analyzer for SQL statement s.
      * @param s the SQL statement
@@ -20,6 +21,7 @@ public class Lexer {
     public Lexer(String s) {
         initKeywords();
         initOperators();
+        initFunctions();
         tok = new StreamTokenizer(new StringReader(s));
         tok.ordinaryChar('.');
         tok.lowerCaseMode(true); //ids and keywords are converted
@@ -68,7 +70,16 @@ public class Lexer {
     public boolean matchKeyword(String w) {
         return tok.ttype == StreamTokenizer.TT_WORD && tok.sval.equals(w);
     }
-
+    
+    /**
+     * Returns true if the current token is the specified keyword.
+     * @return true if that keyword is the current token
+     */
+    public boolean matchKeyword() {
+        return tok.ttype == StreamTokenizer.TT_WORD && keywords.contains(tok.sval);
+    }
+    
+    
     /**
      * Returns true if the current token is a legal identifier.
      * @return true if the current token is an identifier
@@ -198,10 +209,17 @@ public class Lexer {
 
 
     private void initFunctions() {
-        this.functions = Arrays.asList("count", "max", "distance");
+    	this.aggFns = Arrays.asList("count", "max", "distance");
+        this.functions = Arrays.asList("distance");
+        this.functions.addAll(this.aggFns);
+        
     }
-
+    
     public Collection<String> fns() {
         return this.functions;
     }
+    
+    public Collection<String> aggfns() {
+        return this.aggFns;
+    } 
 }
