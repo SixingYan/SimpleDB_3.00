@@ -36,7 +36,7 @@ public class FunctionFinder {
 		return this.aggfn;
 	}
 
-	public boolean hasFn (String fterm) {
+	public boolean hasAggFn (String fterm) {
 		String[] strs = fterm.substring(0, fterm.length() - 2).split("(");
 		String fnName = strs[0];
 		String field = strs[1];
@@ -60,6 +60,8 @@ public class FunctionFinder {
 		fnFlds.put("distance", (ArrayList<String>) Arrays.asList("latitude", "longitude"));
 	}
 	
+	
+	// Methods for ProjectScan
 	/**
 	 * 
 	 * @param fnName
@@ -72,8 +74,13 @@ public class FunctionFinder {
 		}
 		return false;
 	}
-
-	public void setFldVal (Constant val) {
+	
+	public ArrayList<String> getFlds() {
+		// TODO Auto-generated method stub
+		return fnFlds.get(this.fn);
+	}
+	
+	public void setFieldVal (Constant val) {
 		this.fldvals.add(val);
 	}
 	/**
@@ -99,4 +106,6 @@ public class FunctionFinder {
 		                         (lg - SELF_LOG) * (lg - SELF_LOG) +
 		                         (lt - SELF_LAT) * (lt - SELF_LAT)));
 	}
+	
+	
 }
