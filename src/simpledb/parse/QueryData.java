@@ -64,7 +64,7 @@ public class QueryData {
 	public void setAggfns (Collection<String> aggfns) {
 		FunctionFinder ff = new FunctionFinder();
 		for (String fn : aggfns)
-			if (ff.hasFn(fn))
+			if (ff.hasAggFn(fn))
 				this.aggfns.add(ff.getAggFn());
 	}
 
