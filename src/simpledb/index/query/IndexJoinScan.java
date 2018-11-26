@@ -119,4 +119,12 @@ public class IndexJoinScan implements Scan {
       Constant searchkey = s.getVal(joinfield);
       idx.beforeFirst(searchkey);
    }
+
+
+   public Float getFloat(String fldname) {
+	   if (ts.hasField(fldname))
+	         return ts.getFloat(fldname);
+	      else
+	         return s.getFloat(fldname);
+   }
 }

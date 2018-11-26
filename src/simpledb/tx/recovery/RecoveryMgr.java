@@ -86,7 +86,24 @@ public class RecoveryMgr {
       else
          return new SetStringRecord(txnum, blk, offset, oldval).writeToLog();
    }
-
+   
+   /**
+    * Writes a setstring record to the log, and returns its lsn.
+    * Updates to temporary files are not logged; instead, a
+    * "dummy" negative lsn is returned.
+    * @param buff the buffer containing the page
+    * @param offset the offset of the value in the page
+    * @param newval the value to be written
+    */
+   public int setFloat(Buffer buff, int offset,Float newval) {
+      Float oldval = buff.getFloat(offset);
+      Block blk = buff.block();
+      if (isTempBlock(blk))
+         return -1;
+      else
+         return new SetFloatRecord(txnum, blk, offset, oldval).writeToLog();
+   }
+   
    /**
     * Rolls back the transaction.
     * The method iterates through the log records,

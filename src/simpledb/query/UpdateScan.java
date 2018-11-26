@@ -29,6 +29,13 @@ public interface UpdateScan extends Scan {
    public void setString(String fldname, String val);
    
    /**
+    * 
+    * @param fldname
+    * @param val
+    */
+   public void setFloat(String fldname, Float val);
+   
+   /**
     * Inserts a new record somewhere in the scan.
     * @author Sixing Yan
     */
@@ -51,4 +58,5 @@ public interface UpdateScan extends Scan {
     * @param rid the RID of the desired record
     */
    public void moveToRid(RID rid);
+   
 }

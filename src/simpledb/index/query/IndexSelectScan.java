@@ -7,7 +7,7 @@ import simpledb.index.Index;
 /**
  * The scan class corresponding to the <i>select<i> relational
  * algebra operator.
- * @author Edward Sciore
+ * @author Edward Sciore | Sixing Yan
  */
 public class IndexSelectScan implements Scan {
    private Index idx;
@@ -89,10 +89,19 @@ public class IndexSelectScan implements Scan {
    }
    
    /**
+    * Returns the value of the field of the current data record.
+    * @see simpledb.query.Scan#getFloat(java.lang.Float)
+    */
+   public Float getFloat(String fldname) {
+      return ts.getFloat(fldname);
+   }
+   
+   /**
     * Returns whether the data record has the specified field.
     * @see simpledb.query.Scan#hasField(java.lang.String)
     */
    public boolean hasField(String fldname) {
       return ts.hasField(fldname);
    }
+
 }

@@ -97,6 +97,13 @@ public class ChunkScan implements Scan {
    }
    
    /**
+    * @see simpledb.query.Scan#getFloat(java.lang.Float)
+    */
+   public Float getFloat(String fldname) {
+      return rp.getFloat(fldname);
+   }
+   
+   /**
     * @see simpledb.query.Scan#hasField(java.lang.String)
     */
    public boolean hasField(String fldname) {

@@ -95,6 +95,16 @@ public class MultiBufferProductScan implements Scan {
       return prodscan.getString(fldname);
    }
    
+   /** 
+    * Returns the float value of the specified field.
+    * The value is obtained from whichever scan
+    * contains the field.
+    * @see simpledb.query.Scan#getFloat(java.lang.Float)
+    */
+   public Float getFloat(String fldname) {
+      return prodscan.getFloat(fldname);
+   }
+   
    /**
     * Returns true if the specified field is in
     * either of the underlying scans.

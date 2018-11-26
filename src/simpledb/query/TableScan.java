@@ -1,6 +1,7 @@
 package simpledb.query;
 
 import static java.sql.Types.INTEGER;
+import static java.sql.Types.FLOAT;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
 
@@ -63,7 +64,7 @@ public class TableScan implements UpdateScan {
 		return rf.getString(fldname);
 	}
 
-	public String getFloat(String fldname) {
+	public Float getFloat(String fldname) {
 		return rf.getFloat(fldname);
 	}
 
@@ -83,6 +84,8 @@ public class TableScan implements UpdateScan {
 	public void setVal(String fldname, Constant val) {
 		if (sch.type(fldname) == INTEGER)
 			rf.setInt(fldname, (Integer)val.asJavaVal());
+		else if (sch.type(fldname) == FLOAT)
+			rf.setFloat(fldname, (Float)val.asJavaVal());
 		else
 			rf.setString(fldname, (String)val.asJavaVal());
 	}
@@ -94,7 +97,12 @@ public class TableScan implements UpdateScan {
 	public void setString(String fldname, String val) {
 		rf.setString(fldname, val);
 	}
-
+	
+	public void setFloat(String fldname, Float val) {
+		rf.setFloat(fldname, val);
+		
+	}
+	
 	public void delete() {
 		rf.delete();
 	}
@@ -113,4 +121,5 @@ public class TableScan implements UpdateScan {
 	public void moveToRid(RID rid) {
 		rf.moveToRid(rid);
 	}
+	
 }
