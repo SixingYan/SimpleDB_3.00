@@ -80,9 +80,12 @@ public class RecordFile {
     public String getString(String fldname) {
         return rp.getString(fldname);
     }
+
     /**
-     *
-     * @return
+     * Returns the value of the specified field
+     * in the current record.
+     * @param fldname the name of the field
+     * @return the float value at that field
      */
     public Float getFloat(String fldname) {
         return rp.getFloat(fldname);
@@ -107,8 +110,10 @@ public class RecordFile {
     public void setString(String fldname, String val) {
         rp.setString(fldname, val);
     }
+
     /**
-     *
+     * Sets the value of the specified field
+     * in the current record.
      * @param fldname the name of the field
      * @param val the new value for the field
      */

@@ -6,7 +6,7 @@ import simpledb.tx.Transaction;
 
 /**
  * Manages the placement and access of records in a block.
- * @author Edward Sciore
+ * @author Edward Sciore | Sixing Yan
  */
 public class RecordPage {
 	public static final int EMPTY = 0, INUSE = 1;
@@ -72,9 +72,10 @@ public class RecordPage {
 	}
 
 	/**
-	 *
-	 * @param fldname
-	 * @return
+	 * Returns the float value stored for the
+	 * specified field of the current record.
+	 * @param fldname the name of the field.
+	 * @return the float stored in that field
 	 */
 	public Float getFloat(String fldname) {
 		int position = fieldpos(fldname);
@@ -94,10 +95,10 @@ public class RecordPage {
 	}
 
 	/**
-	 * Stores a string at the specified field
+	 * Stores a float at the specified field
 	 * of the current record.
 	 * @param fldname the name of the field
-	 * @param val the string value stored in that field
+	 * @param val the float value stored in that field
 	 */
 	public void setFloat(String fldname, Float val) {
 		int position = fieldpos(fldname);
@@ -105,9 +106,10 @@ public class RecordPage {
 	}
 
 	/**
-	 *
-	 * @param fldname
-	 * @param val
+	 * Stores a string at the specified field
+	 * of the current record.
+	 * @param fldname the name of the field
+	 * @param val the string value stored in that field
 	 */
 	public void setString(String fldname, String val) {
 		int position = fieldpos(fldname);
