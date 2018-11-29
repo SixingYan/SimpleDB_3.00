@@ -36,6 +36,7 @@ public class IndexQueryPlanner implements QueryPlanner {
 
 		//Step 4: Project on the field names
 		p = new ProjectPlan(p, data.fields());
+		
 		return p;
 	}
 }
