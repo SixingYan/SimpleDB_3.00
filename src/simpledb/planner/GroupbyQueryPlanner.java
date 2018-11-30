@@ -42,7 +42,7 @@ public class GroupbyQueryPlanner implements QueryPlanner {
 		//Step 3: Add a selection plan for the predicate
 		p = new SelectPlan(p, data.pred());
 		
-		//Step 4: GroupBy (also Project) on the field names
+		//Step 4: GroupBy (also Project) on the field names. GroupBy will create a new 
 		p = new GroupByPlan(p, data.groupfields(), data.aggfns(), tx);
 		return p;
 	}
