@@ -7,7 +7,7 @@ import java.util.*;
 
 /**
  * Data for the SQL <i>select</i> statement.
- * @author Edward Sciore
+ * @author Edward Sciore | Sixing Yan
  */
 public class QueryData {
 	private Collection<String> fields;
@@ -48,11 +48,19 @@ public class QueryData {
 	public Predicate pred() {
 		return pred;
 	}
-
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public Collection<String> groupfields() {
 		return this.groupfields;
 	}
-
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public Collection<AggregationFn> aggfns () {
 		return this.aggfns;
 	}

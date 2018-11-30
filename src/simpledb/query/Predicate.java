@@ -9,7 +9,7 @@ import java.util.*;
  */
 public class Predicate {
 	private List<Term> terms = new ArrayList<Term>();
-
+	public List<String> fns = new ArrayList<String>();
 	/**
 	* Creates an empty predicate, corresponding to "true".
 	*/
@@ -20,9 +20,11 @@ public class Predicate {
 	* @param t the term
 	*/
 	public Predicate(Term t) {
+		if (t.hasFn())
+			fns.add(t.getLhs().asFieldName());
 		terms.add(t);
 	}
-
+	
 	/**
 	* Modifies the predicate to be the conjunction of
 	* itself and the specified predicate.
@@ -109,7 +111,12 @@ public class Predicate {
 		}
 		return null;
 	}
-
+	
+	/**
+	 * 
+	 * @param fldname
+	 * @return
+	 */
 	public String operatesWithField(String fldname) {
 		for (Term t : terms) {
 			String s = t.operatesWithField(fldname);
@@ -118,7 +125,6 @@ public class Predicate {
 		}
 		return null;
 	}
-
 
 	/**
 	* Determines if there is a term of the form "F=c"

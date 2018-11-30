@@ -2,7 +2,6 @@ package simpledb.parse;
 
 import java.util.*;
 
-import simpledb.materialize.FunctionFinder;
 import simpledb.query.*;
 import simpledb.record.Schema;
 import simpledb.query.Predicate;
@@ -17,11 +16,35 @@ public class Parser {
 	public Parser(String s) {
 		lex = new Lexer(s);
 	}
-
+	
+	
+	public static void main(String args[]) {
+		String sql = "select max(a), b from b where distance() = a";
+		QueryData qd = new Parser(sql).query();
+		
+	}
+	
 // Methods for parsing predicates, terms, expressions, constants, and fields
-
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public String field() {
-		return lex.eatId();
+		if (lex.matchAggFn()) { // aggfn(fld)
+			String fn = lex.eatAggFn();
+			lex.eatDelim(); // '('
+			String fld = lex.eatId();
+			lex.eatDelim(); // ')'
+			return fn + "(" + fld + ")";
+		} else if (lex.matchFn()) { // fn()
+			String fn = lex.eatFn();
+			lex.eatDelim(); // '('
+			lex.eatDelim(); // ')'
+			return fn + "()";
+		}
+		else
+			return lex.eatId();
 	}
 
 	public Constant constant() {
@@ -36,22 +59,23 @@ public class Parser {
 	public String operator() {
 		if (lex.matchOperator())
 			return lex.eatOperator();
+		lex.eatDelim();
 		return DFLT_OPRT;
 	}
+
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public Expression expression() {
-		if (lex.matchKeyword())
-			return null;
+
+		if (lex.matchFn())
+			return new FieldNameExpression(field());
 		else {
 			if (lex.matchId())
 				return new FieldNameExpression(field());
-			else if (lex.matchStringConstant() | lex.matchFloatConstant() | lex.matchIntConstant())
-				return new ConstantExpression(constant());
 			else
-				return null;
+				return new ConstantExpression(constant());
 		}
 	}
 
@@ -65,7 +89,7 @@ public class Parser {
 		return null;
 	}
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public Predicate predicate() {
@@ -80,29 +104,11 @@ public class Parser {
 		}
 		return pred;
 	}
-	/**
-	 * 
-	 * @param w
-	 * @return
-	 */
-	private boolean matchFn (String w) {
-		if (w.contains("("))
-			return lex.fns().contains(w.split("(")[0]);
-		else
-			return false;
-	}
-
-	private boolean isAggfn (String w) {
-		if (w.contains("("))
-			return lex.aggfns().contains(w.split("(")[0]);
-		else
-			return false;
-	}
 
 // Methods for parsing queries
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public QueryData query() {
@@ -135,7 +141,7 @@ public class Parser {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private Collection<String> groupby() {
@@ -147,43 +153,35 @@ public class Parser {
 		}
 		return L;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param rawfields
 	 * @return
 	 */
 	private Collection<String> filedList(Collection<String> rawfields) {
-		FunctionFinder ff = new FunctionFinder();
 		Collection<String> L = new ArrayList<String>();
-		Iterator<String> it = rawfields.iterator();
-		while (it.hasNext())
-			if (matchFn(it.next())){
-				if (!isAggfn(it.next())) // not aggregate function
-					L.addAll(ff.getFields(it.next()));
-			}
-			else // not function
-				L.add(it.next());
-
+		for (String t : rawfields)
+			if (!t.contains("("))
+				L.add(t);
 		return L;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param rawfields
-	 * @return 
+	 * @return
 	 */
 	private Collection<String> aggfnsList(Collection<String> rawfields) {
 		Collection<String> L = new ArrayList<String>();
-		Iterator<String> it = rawfields.iterator();
-		while (it.hasNext())
-			if (matchFn(it.next()) & isAggfn(it.next()))
-				L.add(it.next());
+		for (String t : rawfields)
+			if (t.contains("("))
+				L.add(t);
 		return L;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private Collection<String> selectList() {

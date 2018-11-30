@@ -12,22 +12,54 @@ public class Lexer {
     private Collection<String> operators;
     private StreamTokenizer tok;
     private Collection<String> functions;
-    private Collection<String> aggFns;
-    
+    private Collection<String> aggFunctions;
+    public static String FN_SIGN = "(";
     /**
      * Creates a new lexical analyzer for SQL statement s.
      * @param s the SQL statement
      */
+    
+    public static void main(String args[]) {
+    	String sql = "select max(a), b.b from b where dis() = a";
+    	Lexer lex = new Lexer(sql);
+    	for (int i=0; i< 15; i++)
+    		lex.print();
+    } 
+    
     public Lexer(String s) {
         initKeywords();
         initOperators();
         initFunctions();
         tok = new StreamTokenizer(new StringReader(s));
         tok.ordinaryChar('.');
+        tok.wordChars(40, 41); // add ascii range to support () 
+        tok.wordChars(60, 62); // add ascii range to support < = >
         tok.lowerCaseMode(true); //ids and keywords are converted
         nextToken();
     }
+    
+    public void print() {
+    	// only for testing
+    	System.out.println(tok.sval);
+    	nextToken();
+    }
 
+    /**
+     * 
+     * @return
+     */
+    public boolean matchFn() {
+    	return tok.ttype == StreamTokenizer.TT_WORD && functions.contains(tok.sval);
+    } 
+    
+    /**
+     * 
+     * @return
+     */
+    public boolean matchAggFn() {
+    	return tok.ttype == StreamTokenizer.TT_WORD && aggFunctions.contains(tok.sval);
+    }
+    
     /**
      * Returns true if the current token is
      * the specified delimiter character.
@@ -70,7 +102,7 @@ public class Lexer {
     public boolean matchKeyword(String w) {
         return tok.ttype == StreamTokenizer.TT_WORD && tok.sval.equals(w);
     }
-    
+
     /**
      * Returns true if the current token is the specified keyword.
      * @return true if that keyword is the current token
@@ -79,7 +111,10 @@ public class Lexer {
         return tok.ttype == StreamTokenizer.TT_WORD && keywords.contains(tok.sval);
     }
     
-    
+    public boolean matchFunction() {
+        return tok.sval.contains(FN_SIGN);
+    }
+
     /**
      * Returns true if the current token is a legal identifier.
      * @return true if the current token is an identifier
@@ -89,11 +124,29 @@ public class Lexer {
     }
 
     public boolean matchOperator() {
-        return tok.ttype == StreamTokenizer.TT_WORD && operators.contains(tok.sval);
+        return operators.contains(tok.sval);
     }
 
 //Methods to "eat" the current token
-
+    
+    public String eatFn() {
+    	if (!matchFn())
+            throw new BadSyntaxException();
+    	String s = tok.sval;
+    	System.out.println("now eat fn " + tok.sval);
+        nextToken();
+        return s;
+    }
+    
+    public String eatAggFn() {
+    	if (!matchAggFn())
+            throw new BadSyntaxException();
+    	String s = tok.sval;
+    	System.out.println("now eat agg " + tok.sval);
+        nextToken();
+        return s;
+    }
+    
     /**
      * Throws an exception if the current token is not the
      * specified delimiter.
@@ -103,9 +156,18 @@ public class Lexer {
     public void eatDelim(char d) {
         if (!matchDelim(d))
             throw new BadSyntaxException();
+        System.out.println("now eat delim " + tok.sval);
         nextToken();
     }
-
+    
+    /**
+     * 
+     */
+    public void eatDelim() {
+    	System.out.println("now eat delim " + tok.sval);
+    	nextToken();
+    }
+    
     /**
      * Throws an exception if the current token is not
      * an integer.
@@ -113,9 +175,13 @@ public class Lexer {
      * @return the integer value of the current token
      */
     public int eatIntConstant() {
-        if (!matchIntConstant())
+        if (!matchIntConstant()) {
+        	System.out.println(tok.sval);
+        	System.out.println(tok.nval);
             throw new BadSyntaxException();
+        }
         int i = (int) tok.nval;
+        System.out.println("now eat int " + tok.sval);
         nextToken();
         return i;
     }
@@ -130,6 +196,7 @@ public class Lexer {
         if (!matchStringConstant())
             throw new BadSyntaxException();
         String s = tok.sval; //constants are not converted to lower case
+        System.out.println("now eat string " + tok.sval);
         nextToken();
         return s;
     }
@@ -144,6 +211,7 @@ public class Lexer {
         if (!matchFloatConstant())
             throw new BadSyntaxException();
         float i = new Float(tok.nval);
+        System.out.println("now eat float " + tok.sval);
         nextToken();
         return i;
     }
@@ -157,6 +225,7 @@ public class Lexer {
     public void eatKeyword(String w) {
         if (!matchKeyword(w))
             throw new BadSyntaxException();
+        System.out.println("now eat keyword " + tok.sval);
         nextToken();
     }
 
@@ -171,6 +240,7 @@ public class Lexer {
         if (!matchId())
             throw new BadSyntaxException();
         String s = tok.sval;
+        System.out.println("now eat id " + tok.sval);
         nextToken();
         return s;
     }
@@ -179,6 +249,7 @@ public class Lexer {
         if (!matchOperator())
             throw new BadSyntaxException();
         String s = tok.sval;
+        System.out.println("now eat operator " + tok.sval);
         nextToken();
         return s; 
     }
@@ -194,7 +265,7 @@ public class Lexer {
     private void initKeywords() {
         this.keywords = Arrays.asList("select", "from", "where", "and",
                                  "insert", "into", "values", "delete", "update", "set",
-                                 "create", "table", "int", "varchar", "float", "view", "as", "index", "on");
+                                 "create", "table", "int", "varchar", "float", "view", "as", "index", "on", "distance");
     }
 
     /** @author Sixing Yan
@@ -209,10 +280,8 @@ public class Lexer {
 
 
     private void initFunctions() {
-    	this.aggFns = Arrays.asList("count", "max", "distance");
+    	this.aggFunctions = Arrays.asList("count", "max");
         this.functions = Arrays.asList("distance");
-        this.functions.addAll(this.aggFns);
-        
     }
     
     public Collection<String> fns() {
@@ -220,6 +289,6 @@ public class Lexer {
     }
     
     public Collection<String> aggfns() {
-        return this.aggFns;
+        return this.aggFunctions;
     } 
 }

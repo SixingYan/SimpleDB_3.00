@@ -1,5 +1,6 @@
 package simpledb.query;
 
+import simpledb.index.query.IndexSelectScan;
 import simpledb.record.Schema;
 
 /**
@@ -8,8 +9,9 @@ import simpledb.record.Schema;
  *
  */
 public class Term {
-    private Expression lhs, rhs;
+	private Expression lhs, rhs;
     private String operator;
+    public static String DIST_FN = "distance()";
     /**
      * Creates a new term that compares two expressions
      * for equality.
@@ -21,7 +23,15 @@ public class Term {
         this.rhs = rhs;
         this.operator = operator;
     }
-
+    
+    public boolean hasFn() {
+    	return lhs.asFieldName() == DIST_FN;
+    }
+    
+    public Expression getLhs() {
+    	return lhs;
+    }
+    
     /**
      * Calculates the extent to which selecting on the term reduces
      * the number of records output by a query.
@@ -156,6 +166,11 @@ public class Term {
      * @return true if both expressions have the same value in the scan
     */
     public boolean isSatisfied(Scan s) {
+    	// the query with distance() function will use rtree index in default.
+    	// then the result is all satisfied dist < c
+    	if (s instanceof IndexSelectScan & lhs.asFieldName() == DIST_FN)
+    		return true;
+    	
         Constant lhsval = lhs.evaluate(s);
         Constant rhsval = rhs.evaluate(s);
         return isSatisfiedOperator(lhsval, rhsval);
