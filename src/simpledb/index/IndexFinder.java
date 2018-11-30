@@ -7,6 +7,7 @@ import java.util.Map;
 import simpledb.metadata.IndexInfo;
 import simpledb.parse.QueryData;
 import simpledb.query.Constant;
+import simpledb.query.Term;
 import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 /**
@@ -62,7 +63,7 @@ public class IndexFinder {
 	public boolean obtainRTreeIndex() {
 		if (data.tables().contains(RT_TBL)) {
 			Map<String, IndexInfo> iiMap = SimpleDB.mdMgr().getIndexInfo(RT_TBL, this.tx);
-			if (iiMap.contains("rtindex"))
+			if (iiMap.containsKey("rtindex"))
 				idximap.put("indexname", iiMap.get("indexname"));
 			return true;
 		}
@@ -120,7 +121,7 @@ public class IndexFinder {
 	 */
 	public boolean hasIndexInfo () {
 		// try to get rtree index first
-		if (data.tables.contains(RT_TBL) & toCallRTree())
+		if (data.tables().contains(RT_TBL) & toCallRTree())
 			if (!obtainRTreeIndex())
 				obtainIndex();
 
