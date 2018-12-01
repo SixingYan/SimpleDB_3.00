@@ -17,8 +17,6 @@ import simpledb.tx.Transaction;
  * @author Sixing Yan
  */
 public class IndexContent {
-	public static String SEPERATOR = "@";
-	public static int IDXTYPE_IDX = 2;
 	public static String HASH = "hsh";
 	public static String LINEAR_HASH = "lhsh";
 	public static String EXTENT_HASH = "ehsh";
@@ -30,18 +28,16 @@ public class IndexContent {
 	private String idxname;
 	private Schema sch;
 	private Transaction tx;
-	private String idxtype;
 	private IndexInfo ii;
 
 	public IndexContent(String idxname, Schema sch, Transaction tx) {
 		this.idxname = idxname;
 		this.sch = sch;
 		this.tx = tx;
-		getIndexType();
 	}
+	
 	public IndexContent(IndexInfo ii, Transaction tx) {
 		this.ii = ii;
-		getIndexType();
 	}
 
 	/**
@@ -49,11 +45,11 @@ public class IndexContent {
 	 */
 	public int getIndexSearchCost() {
 		int searchcost;
-		if (this.idxtype.equals(LINEAR_HASH))
+		if (this.idxname.endsWith(LINEAR_HASH))
 			searchcost = LinearHashIndex.searchCost(NOT_USED, NOT_USED);
-		else if (this.idxtype.equals(RTREE))
-			searchcost = -1;//RTreeIndex.searchCost(NOT_USED, NOT_USED);
-		else if (this.idxtype.equals(BTREE))
+		else if (this.idxname.endsWith(RTREE))
+			searchcost = -1; //RTreeIndex.searchCost(NOT_USED, NOT_USED);
+		else if (this.idxname.endsWith(BTREE))
 			searchcost = BTreeIndex.searchCost(tx.size(idxname + "dir" + ".tbl"), tx.size(idxname + "leaf" + ".tbl"));
 		else {
 			int totalBlock = 0;
@@ -71,22 +67,14 @@ public class IndexContent {
 	 */
 	public Index getIndex() {
 		Index idx;
-		if (this.idxtype.equals(LINEAR_HASH))
+		if (this.idxname.endsWith(LINEAR_HASH))
 			idx = new LinearHashIndex(idxname, sch, tx);
-		else if (this.idxtype.equals(RTREE))
+		else if (this.idxname.endsWith(RTREE))
 			idx = new RTreeIndex(idxname, sch, tx);
-		else if (this.idxtype.equals(BTREE))
+		else if (this.idxname.endsWith(BTREE))
 			idx = new BTreeIndex(idxname, sch, tx);
 		else
 			idx = new HashIndex(idxname, sch, tx);
 		return idx;
-	}
-
-	/**
-	 *
-	 */
-	private void getIndexType() {
-		String[] parts = this.idxname.split(SEPERATOR);
-		this.idxtype = parts[IDXTYPE_IDX];
 	}
 }
