@@ -33,14 +33,14 @@ public class Parser {
 	public String field() {
 		if (lex.matchAggFn()) { // aggfn(fld)
 			String fn = lex.eatAggFn();
-			lex.eatDelim(); // '('
+			lex.eatDelim('(');
 			String fld = lex.eatId();
-			lex.eatDelim(); // ')'
+			lex.eatDelim(')');  
 			return fn + "(" + fld + ")";
 		} else if (lex.matchFn()) { // fn()
 			String fn = lex.eatFn();
-			lex.eatDelim(); // '('
-			lex.eatDelim(); // ')'
+			lex.eatDelim('('); 
+			lex.eatDelim(')'); 
 			return fn + "()";
 		}
 		else
