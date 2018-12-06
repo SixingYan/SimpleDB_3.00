@@ -36,7 +36,7 @@ public class IndexFinder {
 		for (String tblname : data.tables()) {
 			Map<String, IndexInfo> iiMap = SimpleDB.mdMgr().getIndexInfo(tblname, this.tx);
 			if (iiMap.isEmpty()) continue;
-			for (String fldname : iiMap.keySet()) {
+			for (String fldname : iiMap.keySet()) { // field with index on it
 				IndexInfo ii = iiMap.get(fldname);
 
 				// search for terms like F1 * c, e.g., F1 > c
@@ -96,6 +96,7 @@ public class IndexFinder {
 	 */
 	private void addField(IndexInfo ii, String fldname, String fld) {
 		// left blank
+		
 	}
 
 	/**
