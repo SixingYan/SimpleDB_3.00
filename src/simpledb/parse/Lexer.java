@@ -32,7 +32,7 @@ public class Lexer {
         initFunctions();
         tok = new StreamTokenizer(new StringReader(s));
         tok.ordinaryChar('.');
-        tok.wordChars(40, 41); // add ascii range to support () 
+        //tok.wordChars(40, 41); // add ascii range to support () 
         tok.wordChars(60, 62); // add ascii range to support < = >
         tok.lowerCaseMode(true); //ids and keywords are converted
         nextToken();
