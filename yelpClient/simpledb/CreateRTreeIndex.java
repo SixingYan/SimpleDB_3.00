@@ -21,13 +21,18 @@ import simpledb.tx.Transaction;
  *
  * @author Xinmeng Gu | Sixing Yan
  */
-
 public class CreateRTreeIndex {
 	private String idxname;
 	private ArrayList<String> xyflds = new ArrayList<String>();
 
 	public CreateRTreeIndex() {}
-
+	
+	/**
+	 * rtree index file
+	 * @param tblname
+	 * @param xname
+	 * @param yname
+	 */
 	public void BuildRTree(String tblname, String xname, String yname) {
 		this.idxname = tblname + "ridxcat";
 		Transaction tx = new Transaction();

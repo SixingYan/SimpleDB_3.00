@@ -15,23 +15,6 @@ public class CreateYelpDB {
 			stmt.executeUpdate(s);
 			System.out.println("Table STUDENT created.");
 
-			
-			s = "create table DEPT(DId int, DName varchar(8))";
-			stmt.executeUpdate(s);
-			System.out.println("Table DEPT created.");
-
-			s = "create table COURSE(CId int, Title varchar(20), DeptId int)";
-			stmt.executeUpdate(s);
-			System.out.println("Table COURSE created.");
-
-			s = "create table SECTION(SectId int, CourseId int, Prof varchar(8), YearOffered int)";
-			stmt.executeUpdate(s);
-			System.out.println("Table SECTION created.");
-
-			s = "create table ENROLL(EId int, StudentId int, SectionId int, Grade varchar(2))";
-			stmt.executeUpdate(s);
-			System.out.println("Table ENROLL created.");
-
 
 		}
 		catch(SQLException e) {

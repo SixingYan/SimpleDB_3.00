@@ -1,40 +1,23 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Set;
+
+
+import simpledb.query.Constant;
+import simpledb.query.IntConstant;
+import simpledb.query.Plan;
+import simpledb.query.StringConstant;
+import simpledb.record.TableInfo;
 import simpledb.remote.SimpleDriver;
+import simpledb.server.SimpleDB;
+import simpledb.tx.Transaction;
+
 
 public class InsertYelpBusiness {
-    public static void main(String[] args) {
-		Connection conn = null;
-		try {
-			Driver d = new SimpleDriver();
-			conn = d.connect("jdbc:simpledb://localhost", null);
-			Statement stmt = conn.createStatement();
-			
-			s = "insert into STUDENT(SId, SName, MajorId, GradYear) values ";
-			String[] studvals = {"(1, 'joe', 10, 2004)",
-								 "(2, 'amy', 20, 2004)",
-								 "(3, 'max', 10, 2005)",
-								 "(4, 'sue', 20, 2005)",
-								 "(5, 'bob', 30, 2003)",
-								 "(6, 'kim', 20, 2001)",
-								 "(7, 'art', 30, 2004)",
-								 "(8, 'pat', 20, 2001)",
-								 "(9, 'lee', 10, 2004)"};
-			for (int i=0; i<studvals.length; i++)
-				stmt.executeUpdate(s + studvals[i]);
-			System.out.println("STUDENT records inserted.");
-
-		}
-		catch(SQLException e) {
-			e.printStackTrace();
-		}
-		finally {
-			try {
-				if (conn != null)
-					conn.close();
-			}
-			catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+	
 }
