@@ -14,7 +14,7 @@ import java.util.*;
  * @author Sixing Yan
  */
 
-public class AdvQueryPlanner {
+public class AdvQueryPlanner implements QueryPlanner {
 	/**
 	* Creates a query plan as follows.  It first takes
 	* the product of all tables and views; it then selects on the predicate;
