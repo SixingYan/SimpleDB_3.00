@@ -1,6 +1,9 @@
 import java.sql.*;
 import simpledb.remote.SimpleDriver;
-
+/**
+ * 
+ * @author Sixing Yan
+ */
 public class CreateYelpDB {
 	// 
     public static void main(String[] args) {

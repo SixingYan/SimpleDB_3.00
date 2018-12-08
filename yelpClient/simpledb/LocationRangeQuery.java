@@ -5,6 +5,10 @@ import simpledb.query.QScan;
 import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 
+/**
+ * 
+ * @author Sixing Yan
+ */
 public class LocationRangeQuery {
     public static void main(String[] args) {
 

@@ -22,6 +22,10 @@ import simpledb.record.TableInfo;
 import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 
+/**
+ * 
+ * @author Xinmeng Gu
+ */
 public class SimpleBuildRTree {
 	String tblname;
 	ArrayList<String> xyflds = new ArrayList<String>();

@@ -1,6 +1,10 @@
 import java.sql.*;
 import simpledb.remote.SimpleDriver;
 
+/**
+ * 
+ * @author Xinmeng Gu
+ */
 public class TopkExcellentShops {
     public static void main(String[] args) {
 

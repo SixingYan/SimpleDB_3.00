@@ -11,7 +11,10 @@ import simpledb.record.TableInfo;
 import simpledb.remote.SimpleDriver;
 import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
-
+/**
+ * 
+ * @author Xinmeng Gu
+ */
 public class SimpleRTreeTest {
     public static void main(String[] args) {
 		Connection conn = null;

@@ -1,6 +1,10 @@
 import java.sql.*;
 import simpledb.remote.SimpleDriver;
 
+/**
+ * 
+ * @author Xinmeng Gu
+ */
 public class TopkNearbyRestaurantswithHighStar {
     public static void main(String[] args) {
 
